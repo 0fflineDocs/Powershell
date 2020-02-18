@@ -31,6 +31,15 @@ $clientPath = "C:\Temp"
 $PC = $env:computername 
 $script:logfile = "$clientPath\Client-SecurityPosture.log"
 
+#Check for Elevevation
+If (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(`
+[Security.Principal.WindowsBuiltInRole] "Administrator"))
+{
+Write-Warning "This script need to be run from an elevated PowerShell prompt!`nPlease restart the PowerShell-prompt as an Administrator and run the script again."
+Write-Warning "Aborting Security Posture..."
+Break
+}
+
 #Write Log-Entry
 function Write-LogEntry {
     [cmdletBinding()]
