@@ -1,2 +1,4 @@
 # Powershell
+
 Windows
+Windows Terminal
