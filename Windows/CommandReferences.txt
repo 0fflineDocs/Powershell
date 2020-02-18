@@ -1,4 +1,4 @@
-# Control Panel
+#Control Panel
 MEMCM: Control smscfgrc 
 MEMCM Software Center: Softwarecenter: 
 Network: Ncpa.cpl 
@@ -10,9 +10,9 @@ Certificates Local Computer: certlm.msc
 DiskManagement: diskmgmt.msc
 Printers: Control printers
 
-# Windows Update	
+#Windows Update	
 ms-settings:windowsupdate
 ms-settings:windowsupdate-action
 
-# Check status AzureAD
+#Check status AzureAD
 dsregcmd /status 
