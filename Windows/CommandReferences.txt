@@ -1,0 +1,18 @@
+# Control Panel
+MEMCM: Control smscfgrc 
+MEMCM Software Center: Softwarecenter: 
+Network: Ncpa.cpl 
+Users and Groups: Lusrmgr.msc 
+Resolution: Desk.cpl 
+Device Manager: HdwWiz.cpl 
+System Properties: sysdm.cpl 
+Certificates Local Computer: certlm.msc
+DiskManagement: diskmgmt.msc
+Printers: Control printers
+
+# Windows Update	
+ms-settings:windowsupdate
+ms-settings:windowsupdate-action
+
+# Check status AzureAD
+dsregcmd /status 
