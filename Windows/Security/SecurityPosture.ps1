@@ -16,13 +16,15 @@ param(
 [switch]$UEFISECBOOT,
 [switch]$Defender,
 [switch]$ATP,
+[switch]$LAPS,
 [switch]$ApplicationGuard,
 [switch]$Sandbox,
 [switch]$CredentialGuardPreReq,
 [switch]$CredentialGuard,
 [switch]$DeviceGuard,
 [switch]$AttackSurfaceReduction,
-[switch]$ControlledFolderAccess)
+[switch]$ControlledFolderAccess,
+[switch]$ExploitProtection)
 
 #Global Variables
 $clientPath = "C:\Temp"
@@ -71,10 +73,10 @@ function Write-LogEntry {
 
 if($OS){
     Write-LogEntry -Message "[Operating System]"
-    $win32os = Get-WmiObject Win32_OperatingSystem -computer $PC -ErrorAction Stop 
+    $win32os = Get-WmiObject Win32_OperatingSystem -computer $PC -ErrorAction silentlycontinue
     $WindowsEdition = $win32os.Caption 
     $OSArchitecture = $win32os.OSArchitecture 
-    $WindowsBuild = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
+    $WindowsBuild = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"-ErrorAction silentlycontinue).ReleaseId 
     $BuildNumber = $win32os.BuildNumber
     Write-LogEntry -Message "Clients OS-Edition is: $WindowsEdition"
     Write-LogEntry -Message "Clients OS-Architecture is: $OSArchitecture"
@@ -83,7 +85,7 @@ if($OS){
 }
 
 if ($TPM) {
-    $TPMStatus = (Get-WmiObject win32_tpm -Namespace root\cimv2\Security\MicrosoftTPM).isenabled()
+    $TPMStatus = (Get-WmiObject win32_tpm -Namespace root\cimv2\Security\MicrosoftTPM -ErrorAction silentlycontinue).isenabled()
     try {
         Write-LogEntry -Message "[TPM]"
         if ($TPMStatus.isenabled -eq "True")
@@ -103,7 +105,7 @@ if ($TPM) {
 
 if ($Bitlocker) {
         Write-LogEntry -Message "[Bitlocker]" 
-        $BitlockerStatus = Get-BitLockerVolume | select volumestatus,encryptionmethod,encryptionpercentage,mountpoint,VolumeType,ProtectionStatus,Keyprotector |? { $_.VolumeType -eq "OperatingSystem" -and $_.ProtectionStatus -eq "On" }
+        $BitlockerStatus = Get-BitLockerVolume | select volumestatus,encryptionmethod,encryptionpercentage,mountpoint,VolumeType,ProtectionStatus,Keyprotector |? { $_.VolumeType -eq "OperatingSystem" -and $_.ProtectionStatus -eq "On" } -erroraction silentlycontinue
         switch ($BitlockerStatus.encryptionmethod) {
         Aes128 { $true }
         Aes256 { $true }
@@ -137,7 +139,7 @@ if ($Bitlocker) {
         }
 
 if ($UEFISECBOOT) {
-    $UEFISECBOOTStatus = Confirm-SecureBootUEFI
+    $UEFISECBOOTStatus = Confirm-SecureBootUEFI -ErrorAction SilentlyContinue
     try {
         Write-LogEntry -Message "[SecureBoot & UEFI]"
         if ($UEFISECBOOTStatus -eq "True")
@@ -162,7 +164,7 @@ if ($Defender) {
     $p = @($p)
     $Defenderstatus = ($p += $c)
     try {
-        $Service = get-service -DisplayName "Windows Defender Antivirus Service"
+        $Service = get-service -DisplayName "Windows Defender Antivirus Service" -ErrorAction SilentlyContinue
         if ($Service.Status -eq "Running")
         {
         Write-LogEntry -Message "Windows Defender seems to be active and running in $PC" 
@@ -227,7 +229,7 @@ if ($Defender) {
         }
 
 if ($ATP) {
-    $ATPStatus = get-service -displayname "Windows Defender Advanced Threat Protection Service"
+    $ATPStatus = get-service -displayname "Windows Defender Advanced Threat Protection Service" -ErrorAction SilentlyContinue
     try {
         Write-LogEntry -Message "[Defender ATP]"
     if ($ATPStatus.Status -eq "Running") 
@@ -245,11 +247,15 @@ catch [System.Exception]
             }
         }
 
+if($LAPS){
+#Get-ADcomputer $PC -prop ms-Mcs-AdmPwd,ms-Mcs-AdmPwdExpirationTime
+}
+
 if($ApplicationGuard){
     try {
     Write-LogEntry -Message "[Application Guard]"
     Write-LogEntry -Message "Checking if Windows Defender Application Guard is installed and enabled..." 
-    $ApplicationGuardStatus = Get-WindowsOptionalFeature -Online -Featurename Windows-Defender-ApplicationGuard
+    $ApplicationGuardStatus = Get-WindowsOptionalFeature -Online -Featurename Windows-Defender-ApplicationGuard -ErrorAction SilentlyContinue
     if ($ApplicationGuardStatus.State = "Enabled") 
     {
     Write-Logentry -Message "Windows Defender Application Guard is installed and enabled."
@@ -269,7 +275,7 @@ if($Sandbox){
         try {
         Write-LogEntry -Message "[Sandbox]"
         Write-LogEntry -Message "Checking if Windows Sandbox is installed and enabled..." 
-        $Sandboxstatus = Get-WindowsOptionalFeature -Online -Featurename Containers-DisposableClientVM
+        $Sandboxstatus = Get-WindowsOptionalFeature -Online -Featurename Containers-DisposableClientVM -ErrorAction SilentlyContinue
         if ($Sandboxstatus.State = "Enabled") 
         {
         Write-Logentry -Message "Windows Sandbox is installed and enabled."
@@ -288,7 +294,7 @@ if($Sandbox){
 if($CredentialGuardPreReq){
 try {
     Write-LogEntry -Message "[Credential Guard Pre-requisite]"
-    $CGPrereq = Get-WindowsOptionalFeature -Online -Featurename Microsoft-Hyper-V-All
+    $CGPrereq = Get-WindowsOptionalFeature -Online -Featurename Microsoft-Hyper-V-All -ErrorAction SilentlyContinue
     if ($CGPrereq.state = "Enabled") 
     {
     Write-LogEntry -Message "Credential Guard prerequisite Hyper V is installed and enabled."
@@ -305,7 +311,7 @@ try {
 }
 
 if ($CredentialGuard) {
-    $CredentialguardStatus = Get-CimInstance -ClassName Win32_DeviceGuard -Namespace root\Microsoft\Windows\DeviceGuard
+    $CredentialguardStatus = Get-CimInstance -ClassName Win32_DeviceGuard -Namespace root\Microsoft\Windows\DeviceGuard -ErrorAction SilentlyContinue
     try {
         Write-LogEntry -Message "[Credential Guard]" 
         if ($CredentialGuardStatus.SecurityServicesRunning -like 1)
@@ -332,7 +338,7 @@ catch [System.Exception]
         }
 
 if ($DeviceGuard) {
-    $DevGuardStatus = Get-CimInstance -classname Win32_DeviceGuard -namespace root\Microsoft\Windows\DeviceGuard
+    $DevGuardStatus = Get-CimInstance -classname Win32_DeviceGuard -namespace root\Microsoft\Windows\DeviceGuard -ErrorAction SilentlyContinue
     try {
         Write-LogEntry -Message "[Device Guard]" 
         if ($DevGuardStatus.CodeIntegrityPolicyEnforcementStatus -like 1)
@@ -359,8 +365,8 @@ catch [System.Exception]
         }       
 
 if ($AttackSurfaceReduction) {
-            $p = Get-MpPreference
-            $c = Get-MpComputerStatus
+            $p = Get-MpPreference -ErrorAction SilentlyContinue
+            $c = Get-MpComputerStatus -ErrorAction SilentlyContinue
             $p = @($p)
             $ASRstatus = ($p += $c)
             try {
@@ -393,8 +399,8 @@ if ($AttackSurfaceReduction) {
         }
         
 if ($ControlledFolderAccess) {
-    $p = Get-MpPreference
-    $c = Get-MpComputerStatus
+    $p = Get-MpPreference -ErrorAction SilentlyContinue
+    $c = Get-MpComputerStatus -ErrorAction SilentlyContinue
     $p = @($p)
     $CFAstatus = ($p += $c)
     try {
