@@ -1,5 +1,5 @@
 # Powershell
 
-Windows
+Windows Security
 
 Windows Terminal
