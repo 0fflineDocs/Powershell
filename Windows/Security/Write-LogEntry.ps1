@@ -1,3 +1,8 @@
+#Global Variables
+$clientPath = "C:\Temp"
+$PC = $env:computername 
+$script:logfile = "$clientPath\Client-SecurityPosture.log"
+
 function Write-LogEntry {
     [cmdletBinding()]
     param (
