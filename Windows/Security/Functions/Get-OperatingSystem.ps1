@@ -1,10 +1,10 @@
-Function Get-DeviceOperatingSystem(){
+Function Get-OperatingSystem(){
     <#
     .DESCRIPTION
     Checks the current PCs Operating System Edition, Architecture, Version, and Build.
     
     .EXAMPLE
-    Get-DeviceOperatingSystem
+    Get-OperatingSystem
     #>
 
     #Variable
