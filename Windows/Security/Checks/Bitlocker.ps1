@@ -1,6 +1,14 @@
-if ($Bitlocker) {
+Function Get-Bitlocker(){
+    <#
+    .DESCRIPTION
+    
+    .EXAMPLE
+    Get-Bitlocker
+    #>
+
+    $BitlockerStatus = Get-BitLockerVolume | select volumestatus,encryptionmethod,encryptionpercentage,mountpoint,VolumeType,ProtectionStatus,Keyprotector | Where-Object { $_.VolumeType -eq "OperatingSystem" -and $_.ProtectionStatus -eq "On" } -erroraction silentlycontinue
+    try {
         Write-LogEntry -Message "[Bitlocker]" 
-        $BitlockerStatus = Get-BitLockerVolume | select volumestatus,encryptionmethod,encryptionpercentage,mountpoint,VolumeType,ProtectionStatus,Keyprotector |? { $_.VolumeType -eq "OperatingSystem" -and $_.ProtectionStatus -eq "On" } -erroraction silentlycontinue
         switch ($BitlockerStatus.encryptionmethod) {
         Aes128 { $true }
         Aes256 { $true }
@@ -32,3 +40,8 @@ if ($Bitlocker) {
                         Write-LogEntry -Message "Failed to check status of $Bitlocker"
                     }
         }
+        catch {
+            Write-Error $_.Exception 
+            break
+        }
+}
