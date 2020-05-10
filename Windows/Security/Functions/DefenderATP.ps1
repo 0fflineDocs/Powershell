@@ -1,5 +1,14 @@
-if ($ATP) {
-    $ATPStatus = get-service -displayname "Windows Defender Advanced Threat Protection Service" -ErrorAction SilentlyContinue
+Function Get-DefenderATP(){
+<#
+.DESCRIPTION
+Checks Defender ATP service status.
+    
+.EXAMPLE
+Get-DefenderATP
+#>
+
+#Variable
+$ATPStatus = get-service -displayname "Windows Defender Advanced Threat Protection Service" -ErrorAction SilentlyContinue
     try {
         Write-LogEntry -Message "[Defender ATP]"
     if ($ATPStatus.Status -eq "Running") 
@@ -15,4 +24,9 @@ catch [System.Exception]
             {
                 Write-LogEntry -Message "Failed to check status of $ATP"
             }
+            
+        catch {
+            Write-Error $_.Exception 
+            break
         }
+}
