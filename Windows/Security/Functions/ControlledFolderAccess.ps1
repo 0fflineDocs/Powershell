@@ -1,8 +1,17 @@
-if ($ControlledFolderAccess) {
-    $p = Get-MpPreference -ErrorAction SilentlyContinue
-    $c = Get-MpComputerStatus -ErrorAction SilentlyContinue
-    $p = @($p)
-    $CFAstatus = ($p += $c)
+Function Get-ControlledFolderAccess(){
+<#
+.DESCRIPTION
+Checks status of Controlled Folder Access
+                        
+.EXAMPLE
+Get-ControlledFolderAccess
+#>
+                
+#Variable
+$p = Get-MpPreference -ErrorAction SilentlyContinue
+$c = Get-MpComputerStatus -ErrorAction SilentlyContinue
+$p = @($p)
+$CFAstatus = ($p += $c)
     try {
         Write-LogEntry -Message "Checking status and configuration for Attack Surface Reduction..."
         if ($CFAstatus.EnableControlledFolderAccess -eq "2") 
@@ -22,4 +31,8 @@ catch [System.Exception]
     {
         Write-LogEntry -Message "Failed to check status of $ControlledFolderAccess"
     }
+catch {
+Write-Error $_.Exception 
+break
+}
 }
