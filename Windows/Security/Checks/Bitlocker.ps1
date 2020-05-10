@@ -1,7 +1,8 @@
 Function Get-Bitlocker(){
     <#
     .DESCRIPTION
-    
+    Resolves the current Bitlockerstatus and checks Volume, Encryption method & percentage, mountpoint, the type of volume, the protection status of Bitlocker and it's Keyprotector.
+
     .EXAMPLE
     Get-Bitlocker
     #>
