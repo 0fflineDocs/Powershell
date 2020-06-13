@@ -52,7 +52,7 @@ Function SecPos {
     Write-Output "----------------------------------------------"
     Write-Output "> Help: 'Get-Command -Module SecurityPosture'"
     Write-Output "----------------------------------------------"
-    Write-Output ">        Written by: @0fflineDocs 2020"
+    Write-Output ">               @0fflineDocs"
     }
 
 function Write-LogEntry {
