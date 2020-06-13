@@ -92,7 +92,7 @@ function Write-LogEntry {
 Function Get-OperatingSystem(){
     <#
     .DESCRIPTION
-    Checks the current PCs Operating System Edition, Architecture, Version, and Build.
+    Checks the current PCs Operating System Edition, Architecture, Version and Buildnumber.
     
     .EXAMPLE
     Get-OperatingSystem
