@@ -40,6 +40,21 @@ Break
 }
 
 <# FUNCTIONS #>
+Function SecPos {
+    Clear-Host
+    Write-Output "----------------------------------------------"
+    Write-Output ">          Module: Security Posture"
+    Write-Output "----------------------------------------------"
+    Write-Output ">               Version: $ScriptVersion"
+    Write-Output "----------------------------------------------"
+    Write-Output ">      Logfiles will be genereated to:" 
+    Write-Output ">    $script:logfile"
+    Write-Output "----------------------------------------------"
+    Write-Output "> Help: 'Get-Command -Module SecurityPosture'"
+    Write-Output "----------------------------------------------"
+    Write-Output ">        Written by: @0fflineDocs 2020"
+    }
+
 function Write-LogEntry {
     [cmdletBinding()]
     param (
