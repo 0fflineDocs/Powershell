@@ -53,6 +53,7 @@ Function SecPos {
     Write-Output "> Help: 'Get-Command -Module SecurityPosture'"
     Write-Output "----------------------------------------------"
     Write-Output ">               @0fflineDocs"
+    Write-Output "----------------------------------------------"
     }
 
 function Write-LogEntry {
