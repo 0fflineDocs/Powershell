@@ -528,7 +528,7 @@ Get-DeviceGuard
         
 #Variables
 $DevGuardStatus = Get-CimInstance -classname Win32_DeviceGuard -namespace root\Microsoft\Windows\DeviceGuard -ErrorAction SilentlyContinue
-$DevGuardInfo = Get-Computerinfo
+$DevGuardInfo = Get-Computerinfo | Select-Object -Property DeviceGuard*
         
         try {
             Write-LogEntry -Message "[Device Guard]" 
