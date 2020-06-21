@@ -9,6 +9,7 @@
 
 [cmdletbinding( DefaultParameterSetName = 'Security' )]
 param(
+[switch]$SecPos,
 [switch]$OS,
 [switch]$TPM,
 [switch]$Bitlocker,
@@ -26,6 +27,7 @@ param(
 [switch]$ExploitProtection)
 
 #Global Variables
+$ScriptVersion = "0.1"
 $clientPath = "C:\Temp"
 $PC = $env:computername 
 $script:logfile = "$clientPath\Client-SecurityPosture.log"
@@ -34,12 +36,16 @@ $script:logfile = "$clientPath\Client-SecurityPosture.log"
 If (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(`
 [Security.Principal.WindowsBuiltInRole] "Administrator"))
 {
-Write-Warning "This script needs to be run from an elevated PowerShell prompt.`nWould you kindly restart Powershell and launch it as Administrator before running the script again."
+Write-Warning "This script needs to be run from an elevated PShell prompt.`nWould you kindly restart Powershell and launch it as Administrator before running the script again."
 Write-Warning "Aborting Security Posture..."
 Break
 }
 
+##############################################
+
 <# FUNCTIONS #>
+
+#Display descriptive information about the module and it's environment
 Function SecPos {
     Clear-Host
     Write-Output "----------------------------------------------"
@@ -53,9 +59,9 @@ Function SecPos {
     Write-Output "> Help: 'Get-Command -Module SecurityPosture'"
     Write-Output "----------------------------------------------"
     Write-Output ">               @0fflineDocs"
-    Write-Output "----------------------------------------------"
+	Write-Output "----------------------------------------------"
     }
-
+    
 function Write-LogEntry {
     [cmdletBinding()]
     param (
@@ -108,25 +114,25 @@ function Write-LogEntry {
 Function Get-OperatingSystem(){
     <#
     .DESCRIPTION
-    Checks the current PCs Operating System Edition, Architecture, Version and Buildnumber.
+    Checks the current PCs Operating System Edition, Architecture, Version, and Buildnumber.
     
     .EXAMPLE
     Get-OperatingSystem
     #>
 
     #Variable
-    $win32os = Get-CimInstance Win32_OperatingSystem -computername $PC | Select-Object Name, OSArchitecture, Version, Buildnumber, OperatingSystemSKU -ErrorAction silentlycontinue
-        try {
+    $win32os = Get-CimInstance Win32_OperatingSystem -computername $PC | Select-Object Caption, OSArchitecture, Version, Buildnumber, OperatingSystemSKU -ErrorAction silentlycontinue
+    
+    try {
             Write-LogEntry -Message "[Operating System]"
-            $win32os = Get-CimInstance Win32_OperatingSystem -computername $PC | Select-Object Name, OSArchitecture, Version, Buildnumber, OperatingSystemSKU -ErrorAction silentlycontinue
-            $WindowsEdition = $win32os.Name
+            $WindowsEdition = $win32os.Caption
             $OSArchitecture = $win32os.OSArchitecture 
             $WindowsBuild = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"-ErrorAction silentlycontinue).ReleaseId 
             $BuildNumber = $win32os.Buildnumber
-            Write-LogEntry -Message "Clients OS-Edition is: $WindowsEdition"
-            Write-LogEntry -Message "Clients OS-Architecture is: $OSArchitecture"
-            Write-LogEntry -Message "Clients OS-Version is: $WindowsBuild"
-            Write-LogEntry -Message "Clients OS-Buildnumber is: $BuildNumber"
+            Write-LogEntry -Message "OS-Edition is: $WindowsEdition"
+            Write-LogEntry -Message "OS-Architecture is: $OSArchitecture"
+            Write-LogEntry -Message "OS-Version is: $WindowsBuild"
+            Write-LogEntry -Message "OS-Buildnumber is: $BuildNumber"
             }
         catch {
             Write-Error $_.Exception 
@@ -155,12 +161,12 @@ Function Get-TPM(){
                 }
                     else  
                     {
-                        Write-LogEntry -Message "TPM is not enabled and not configured correctly in $PC"
+                        Write-LogEntry -Type Warning -Message "TPM is not enabled and not configured correctly in $PC"
                     }
                 }
                 catch [System.Exception] 
                     {
-                        Write-LogEntry -Message "Failed to check status of $TPM"
+                        Write-LogEntry -Type Error -Message "Failed to check status of $TPM"
                     }
                 }
             
@@ -194,7 +200,7 @@ Function Get-Bitlocker(){
             try {
                 if ($BitlockerStatus.ProtectionStatus -eq "On")
                 {                
-                Write-LogEntry -Message "Bitlocker is enabled and configured correctly in $PC"
+                Write-LogEntry -Type Success -Message "Bitlocker is enabled and configured correctly in $PC"
                 Write-LogEntry -Message "Volumestatus: $($BitlockerStatus.Volumestatus)"
                 Write-LogEntry -Message "Encryption Method: $($BitlockerStatus.Encryptionmethod)"
                 Write-LogEntry -Message "Encryption Percentage: $($BitlockerStatus.EncryptionPercentage)"
@@ -205,12 +211,12 @@ Function Get-Bitlocker(){
                 }
                     else  
                     {
-                        Write-LogEntry -Message "Bitlocker is not enabled and not configured correctly in $PC"
+                        Write-LogEntry -Type Warning -Message "Bitlocker is not enabled and not configured correctly in $PC"
                     }
                 }
                 catch [System.Exception] 
                     {
-                        Write-LogEntry -Message "Failed to check status of $Bitlocker"
+                        Write-LogEntry -Type Error -Message "Failed to check status of $Bitlocker"
                     }
         }
         catch {
@@ -232,19 +238,19 @@ Function Get-UefiSecureBoot(){
        $UEFISECBOOTStatus = Confirm-SecureBootUEFI -ErrorAction SilentlyContinue
    
        try {
-           Write-LogEntry -Message "[SecureBoot & UEFI]"
+           Write-LogEntry -Message "[UEFI & SecureBoot]"
            if ($UEFISECBOOTStatus -eq "True")
            {                
-           Write-LogEntry -Message "UEFI & Secureboot enabled and configured correctly."
+           Write-LogEntry -Type Success -Message "UEFI & Secureboot enabled and configured correctly."
            }
                else  
                {
-                   Write-LogEntry -Message "UEFI and Secure Boot is not enabled correctly, please check the BIOS configuration."
+                   Write-LogEntry -Type Warning -Message "UEFI and Secure Boot is not enabled correctly, please check the BIOS configuration."
                }
            }
            catch [System.Exception] 
                {
-                   Write-LogEntry -Message "Failed to check status of $UEFISECBOOT"
+                   Write-LogEntry -Type Error -Message "Failed to check status of $UEFISECBOOT"
                }
            
                
@@ -274,64 +280,64 @@ Function Get-Defender(){
     $Service = get-service -DisplayName "Windows Defender Antivirus Service" -ErrorAction SilentlyContinue
     if ($Service.Status -eq "Running")
     {
-    Write-LogEntry -Message "Windows Defender seems to be active and running in $PC" 
+    Write-LogEntry -Type Success -Message "Windows Defender Antivirus Service is active and running in $PC" 
     }
     else 
     {
-        Write-LogEntry -Message "Defender Service is not running..."
+        Write-LogEntry -Type Warning -Message "Defender Service is not running..."
     }
     if ($Defenderstatus.AntivirusEnabled -eq "True") 
     {                
-    Write-LogEntry -Message "Antivirus is Enabled"
+    Write-LogEntry -Type Success -Message "Antivirus is Enabled"
     }
     else  
         {
-            Write-LogEntry -Message "Antivirus is Disabled"
+            Write-LogEntry -Type Error -Message "Antivirus is Disabled"
         }
         if ($Defenderstatus.AntispywareEnabled -eq "True") 
         {
-            Write-LogEntry -Message "Antispyware is Enabled"
+            Write-LogEntry -Type Success -Message "Antispyware is Enabled"
         }
         else 
         {
-            Write-LogEntry -Message "Antispyware is Disabled"
+            Write-LogEntry -Type Warning -Message "Antispyware is Disabled"
         }
         if ($Defenderstatus.RealTimeProtectionEnabled -eq "True") 
         {
-            Write-LogEntry -Message "Real Time Protection is Enabled"
+            Write-LogEntry -Type Success -Message "Real Time Protection is Enabled"
         }
             else 
             {
-            Write-LogEntry -Message "Real Time Protection is Disabled"
+            Write-LogEntry -Type Warning -Message "Real Time Protection is Disabled"
             }    
         if ($Defenderstatus.IsTamperProtected -eq "True") 
         {
-            Write-LogEntry -Message "Tamper Protection is Enabled"
+            Write-LogEntry -Type Success -Message "Tamper Protection is Enabled"
         }
             else 
             {
-            Write-LogEntry -Message "Tamper Protection is Disabled"
+            Write-LogEntry -Type Warning -Message "Tamper Protection is Disabled"
             }   
         if ($Defenderstatus.IoavProtectionEnabled -eq "True") 
         {
-        Write-LogEntry -Message "IOAV Protection is Enabled"
+        Write-LogEntry -Type Success -Message "IOAV Protection is Enabled"
         }
             else 
             {
-                Write-LogEntry -Message "IOAV Protection is Disabled"
+                Write-LogEntry -Type Warning -Message "IOAV Protection is Disabled"
             }
         if ($Defenderstatus.EnableNetworkProtection -eq "1") 
             {
-            Write-LogEntry -Message "Network Protection is Enabled"
+            Write-LogEntry -Type Success -Message "Network Protection is Enabled"
             }
         else 
             {
-                Write-LogEntry -Message "Network Protection is Disabled"
+                Write-LogEntry -Type Warning -Message "Network Protection is Disabled"
             }    
         }
         catch [System.Exception] 
             {
-                Write-LogEntry -Message "Failed to check status of $Defender"
+                Write-LogEntry -Type Error -Message "Failed to check status of $Defender"
             }
            catch {
                Write-Error $_.Exception 
@@ -354,16 +360,16 @@ $ATPStatus = get-service -displayname "Windows Defender Advanced Threat Protecti
         Write-LogEntry -Message "[Defender ATP]"
     if ($ATPStatus.Status -eq "Running") 
     {
-        Write-Logentry -Message "Defender ATP Service running."
+        Write-Logentry -Type Success -Message "Defender ATP Service is running."
     }
     else 
             {
-                Write-LogEntry -Message "Defender ATP Service not running."
+                Write-LogEntry -Type Warning -Message "Defender ATP Service is not running."
             }
 }
 catch [System.Exception] 
             {
-                Write-LogEntry -Message "Failed to check status of $ATP"
+                Write-LogEntry -Type Error -Message "Failed to check status of $ATP"
             }
             
         catch {
@@ -389,16 +395,16 @@ Function Get-ApplicationGuard(){
         Write-LogEntry -Message "Checking if Windows Defender Application Guard is installed and enabled..." 
         if ($ApplicationGuardStatus.State = "Enabled") 
         {
-        Write-Logentry -Message "Windows Defender Application Guard is installed and enabled."
+        Write-Logentry -Type Success -Message "Windows Defender Application Guard is installed and enabled."
         }
         else 
                 {
-                    Write-LogEntry -Message "Windows Defender Application Guard is not enabled..."
+                    Write-LogEntry -Type Warning -Message "Windows Defender Application Guard is not enabled..."
                 }
         }
                 catch [System.Exception] 
                 {
-                    Write-LogEntry -Message "Failed to check status of $ApplicationGuard"
+                    Write-LogEntry -Type Error -Message "Failed to check status of $ApplicationGuard"
                 }
             
             catch {
@@ -424,16 +430,16 @@ Function Get-Sandbox(){
           
             if ($Sandboxstatus.State = "Enabled") 
             {
-            Write-Logentry -Message "Windows Sandbox is installed and enabled."
+            Write-Logentry -Type Success -Message "Windows Sandbox is installed and enabled."
             }
             else 
                         {
-                            Write-LogEntry -Message "Windows Sandbox is not enabled."
+                            Write-LogEntry -Type Warning -Message "Windows Sandbox is not enabled."
                         }
                 }
                         catch [System.Exception] 
                         {
-                            Write-LogEntry -Message "Failed to check status of $Sandbox"
+                            Write-LogEntry -Type Error -Message "Failed to check status of $Sandbox"
                         }
                     
                 catch {
@@ -458,16 +464,16 @@ Function Get-CredentialGuardPreReq(){
                 $CGPrereq = Get-WindowsOptionalFeature -Online -Featurename Microsoft-Hyper-V-All -ErrorAction SilentlyContinue
                 if ($CGPrereq.state = "Enabled") 
                 {
-                Write-LogEntry -Message "Credential Guard prerequisite Hyper V is installed and enabled."
+                Write-LogEntry -Type Success -Message "Credential Guard prerequisite Hyper V is installed and enabled."
                 }
                 else 
                 {
-                    Write-LogEntry -Message "Hyper-V All is not enabled/installed."
+                    Write-LogEntry -Type Warning -Message "Hyper-V All is not enabled/installed."
                 }
             }
                 catch [System.Exception] 
                 {
-                    Write-LogEntry -Message "Failed to check status of $CredentialGuardPreReq"
+                    Write-LogEntry -Type Error -Message "Failed to check status of $CredentialGuardPreReq"
                 }
         
                         
@@ -492,24 +498,24 @@ Function Get-CredentialGuard(){
                 Write-LogEntry -Message "[Credential Guard]" 
                 if ($CredentialGuardStatus.SecurityServicesRunning -like 1)
             {
-                Write-Logentry -Message "Credential Guard Services are running."
+                Write-Logentry -Type Success -Message "Credential Guard Services are running."
             }
             else 
                     {
-                        Write-LogEntry -Message "CredentialGuard Service are not running."
+                        Write-LogEntry -Type Warning -Message "Credential Guard Services are not running."
                     }
                     if ($CredentialGuardStatus.SecurityServicesConfigured -like 1)
                     {
-                        Write-Logentry -Message "Credential Guard is configured."
+                        Write-Logentry -Type Success -Message "Credential Guard is configured."
                     }
                     else 
                             {
-                                Write-LogEntry -Message "Credential Guard is not configured."
+                                Write-LogEntry -Type Warning -Message "Credential Guard is not configured."
                             }
         }
         catch [System.Exception] 
                     {
-                        Write-LogEntry -Message "Failed to check status of $CredentialGuard"
+                        Write-LogEntry -Type Error -Message "Failed to check status of $CredentialGuard"
                     }  
                     catch {
                         Write-Error $_.Exception 
@@ -534,23 +540,23 @@ $DevGuardInfo = Get-Computerinfo | Select-Object -Property DeviceGuard*
             Write-LogEntry -Message "[Device Guard]" 
             if ($DevGuardStatus.CodeIntegrityPolicyEnforcementStatus -like 1)
         {
-            Write-Logentry -Message "Device Guard Code Integrity Policy is activated and enforced."
+            Write-Logentry -Type Success -Message "Device Guard Code Integrity Policy is activated and enforced."
         }
         else 
                 {
-                    Write-LogEntry -Message "Device Guard Code Integrity Policy is not activated."
+                    Write-LogEntry -Type Warning -Message "Device Guard Code Integrity Policy is not activated."
                 }
                 if ($DevGuardStatus.SecurityServicesRunning -like 1)
                 {
-                    Write-Logentry -Message "Device Guard services are running."
+                    Write-Logentry -Type Success -Message "Device Guard services are running."
                 }
                 else 
                         {
-                            Write-LogEntry -Message "Device Guard services are not running."
+                            Write-LogEntry -Type Warning -Message "Device Guard services are not running."
                         }
                         if ($DevGuardInfo.DeviceGuardCodeIntegrityPolicyEnforcementStatus -eq "AuditMode")
                         {
-                            Write-LogEntry -Message "Device Guard Code Integrity is currently in Audit Mode."
+                            Write-LogEntry -Type Warning -Message "Device Guard Code Integrity is currently in Audit Mode."
                         }
                         else
                                 {
@@ -558,32 +564,32 @@ $DevGuardInfo = Get-Computerinfo | Select-Object -Property DeviceGuard*
                                 }
                         if ($DevGuardInfo.DeviceGuardSmartStatus -like 1)
                         {
-                            Write-LogEntry -Message "Device Guard Smart Status is running."
+                            Write-LogEntry -Type Success -Message "Device Guard Smart Status is running."
                         }
                         else 
                                 {
-                                    Write-LogEntry -Message "Device Guard Smart Status is not running."
+                                    Write-LogEntry -Type Warning -Message "Device Guard Smart Status is not running."
                                 }        
                 if ($DevGuardInfo.DeviceGuardSecurityServicesRunning -like "CredentialGuard")
                 {
-                    Write-LogEntry -Message "Credential Guard is running."
+                    Write-LogEntry -Type Success -Message "Credential Guard is running."
                 }
                 else
                         {
-                            Write-LogEntry -Message "Credential Guard is not running."
+                            Write-LogEntry -Type Warning -Message "Credential Guard is not running."
                         }
                 if ($DevGuardInfo.DeviceGuardSecurityServicesConfigured -like "CredentialGuard")
                 {
-                    Write-LogEntry -Message "Credential Guard is configured."
+                    Write-LogEntry -Type Success -Message "Credential Guard is configured."
                 }
                 else
                         {
-                            Write-LogEntry -Message "Credential Guard is not configured."
+                            Write-LogEntry -Type Warning -Message "Credential Guard is not configured."
                         }
                  }
     catch [System.Exception] 
                 {
-                    Write-LogEntry -Message "Failed to check status of $DeviceGuard"
+                    Write-LogEntry -Type Error -Message "Failed to check status of $DeviceGuard"
                 }
             
                     catch {
@@ -591,8 +597,6 @@ $DevGuardInfo = Get-Computerinfo | Select-Object -Property DeviceGuard*
                         break
                     }
 }
-
-
 Function Get-AttackSurfaceReduction(){
 <#
 .DESCRIPTION
@@ -612,28 +616,28 @@ $ASRstatus = ($p += $c)
         Write-LogEntry -Message "[Attack Surface Reduction]"
         if ($Defenderstatus.EnableNetworkProtection -eq "1") 
     {
-    Write-LogEntry -Message "Network Protection is Enabled"
+    Write-LogEntry -Type Success -Message "Network Protection is Enabled"
     }
 else 
     {
-        Write-LogEntry -Message "Network Protection is Disabled"
+        Write-LogEntry -Type Warning -Message "Network Protection is Disabled"
     }    
         if ($ASRstatus.AttackSurfaceReductionRules_Actions -eq "2") 
         {
-            Write-LogEntry -Message "Attack Surface Reduction is configured and in audit mode."
+            Write-LogEntry -Type Warning -Message "Attack Surface Reduction is configured and in audit mode."
         }
         elseif ($ASRstatus.AttackSurfaceReductionRules_Actions -eq "1")
         {
-            Write-LogEntry -Message "Attack Surface Reduction is configured and enforced."
+            Write-LogEntry -Type Success -Message "Attack Surface Reduction is configured and enforced."
         }
         else 
         {
-            Write-LogEntry -Message "Attack Surface Reduction is not configured."
+            Write-LogEntry -Type Warning -Message "Attack Surface Reduction is not configured."
         }
 }
 catch [System.Exception] 
     {
-        Write-LogEntry -Message "Failed to check status of $AttackSurfaceReduction"
+        Write-LogEntry -Type Error -Message "Failed to check status of $AttackSurfaceReduction"
     }           
     catch {
             Write-Error $_.Exception 
@@ -659,20 +663,20 @@ $CFAstatus = ($p += $c)
         Write-LogEntry -Message "Checking status and configuration for Attack Surface Reduction..."
         if ($CFAstatus.EnableControlledFolderAccess -eq "2") 
     {
-    Write-LogEntry -Message "Controlled Folder Access is enabled and in audit mode."
+    Write-LogEntry -Type Warning -Message "Controlled Folder Access is enabled and in audit mode."
     }
     elseif ($CFAstatus.EnableControlledFolderAccess -eq "1") 
     {
-        Write-LogEntry -Message "Controlled Folder Access is configured and enforced."
+        Write-LogEntry -Type Success -Message "Controlled Folder Access is configured and enforced."
     }
         else 
         {
-            Write-LogEntry -Message "Controlled Folder Access is not configured."
+            Write-LogEntry -Type Warning -Message "Controlled Folder Access is not configured."
         }
 }
 catch [System.Exception] 
     {
-        Write-LogEntry -Message "Failed to check status of $ControlledFolderAccess"
+        Write-LogEntry -Type Error -Message "Failed to check status of $ControlledFolderAccess"
     }
 catch {
 Write-Error $_.Exception 
@@ -680,12 +684,11 @@ break
 }
 }
 
-
-
-
-
-
 <################ SWITCHES #################>
+if($SecPos){
+SecPos
+}
+
 if($OS){
 Get-OperatingSystem
 }
