@@ -3,7 +3,8 @@
 .DESCRIPTION
 
 .EXAMPLE
-.\SecurityPosture.ps1 -OS -TPM -Bitlocker -UEFISECBOOT -Defender -ATP -LAPS -ApplicationGuard -Sandbox -CredentialGuardPreReq -CredentialGuard -DeviceGuard -AttackSurfaceReduction -ControlledFolderAccess
+.\SecurityPosture.ps1 -OS -TPM -Bitlocker -UEFISECBOOT -Defender -ATP -LAPS -ApplicationGuard -Sandbox -CredentialGuardPreReq 
+-CredentialGuard -DeviceGuard -AttackSurfaceReduction -ControlledFolderAccess
 
 #>
 
