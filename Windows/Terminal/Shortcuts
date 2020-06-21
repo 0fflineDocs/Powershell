@@ -1,5 +1,0 @@
-Terminal Shortcut Run-As-Admin
-C:\Windows\System32\cmd.exe /c start /b wt
-
-Terminal Shortcut Run-As-Admin Split-pane 
-C:\Windows\System32\cmd.exe /c start /b wt -p "PSHell"  ; split-pane -p "Ex1" ; split-pane -p "Ex2"
