@@ -3,8 +3,7 @@
 .DESCRIPTION
 
 .EXAMPLE
-.\SecurityPosture.ps1 -OS -TPM -Bitlocker -UEFISECBOOT -Defender -ATP -LAPS -ApplicationGuard -Sandbox -CredentialGuardPreReq -CredentialGuard -DeviceGuard -AttackSurfaceReduction -ControlledFolderAccess
-
+.\Security_Posture_CIM.ps1 -OS -TPM -Bitlocker -UEFISECBOOT -Defender -DefenderATP -MAPS -LAPS -ApplicationGuard -Sandbox -CredentialGuardPreReq -CredentialGuard -DeviceGuard -AttackSurfaceReduction -ControlledFolderAccess
 #>
 
 [cmdletbinding( DefaultParameterSetName = 'Security' )]
