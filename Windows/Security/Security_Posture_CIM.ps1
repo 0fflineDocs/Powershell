@@ -3,8 +3,7 @@
 .DESCRIPTION
 
 .EXAMPLE
-.\SecurityPosture.ps1 -OS -TPM -Bitlocker -UEFISECBOOT -Defender -ATP -LAPS -ApplicationGuard -Sandbox -CredentialGuardPreReq 
--CredentialGuard -DeviceGuard -AttackSurfaceReduction -ControlledFolderAccess
+.\SecurityPosture.ps1 -OS -TPM -Bitlocker -UEFISECBOOT -Defender -ATP -LAPS -ApplicationGuard -Sandbox -CredentialGuardPreReq -CredentialGuard -DeviceGuard -AttackSurfaceReduction -ControlledFolderAccess
 
 #>
 
@@ -17,6 +16,7 @@ param(
 [switch]$UEFISECBOOT,
 [switch]$Defender,
 [switch]$DefenderATP,
+[switch]$MAPS,
 [switch]$LAPS,
 [switch]$ApplicationGuard,
 [switch]$Sandbox,
@@ -264,8 +264,9 @@ Function Get-UefiSecureBoot(){
 Function Get-Defender(){
     <#
     .DESCRIPTION
-    Resolves status of Windows Defender (Defender Service, Antivirus, Antispyware, Realtime Protection, Tamper Protection, IOAV Protection, Network Protection).
-       
+    Resolves status of Windows Defender (Defender Service, Antivirus, Antispyware, Realtime Protection, Tamper Protection, IOAV Protection, Network Protection, PUAProtection).
+    (IOAV = IE/EDGE Downloads and Outlook Express Attachments initiated)
+
     .EXAMPLE
     Get-Defender
     #>
@@ -329,12 +330,24 @@ Function Get-Defender(){
             }
         if ($Defenderstatus.EnableNetworkProtection -eq "1") 
             {
-            Write-LogEntry -Type Success -Message "Network Protection is Enabled"
+                Write-LogEntry -Type Success -Message "Network Protection is Enabled"
             }
         else 
             {
                 Write-LogEntry -Type Warning -Message "Network Protection is Disabled"
             }    
+        if ($Defenderstatus.PUAProtection -eq "1") 
+            {
+                Write-LogEntry -Type Success -Message "Potentionally Unwanted Application-protection is enabled."
+            }
+        if ($Defenderstatus.PUAProtection -eq "2") 
+            {
+                Write-LogEntry -Type Warning -Message "Potentionally Unwanted Application-protection is in audit-mode."
+            }
+        Else 
+            {
+                Write-LogEntry -Type Warning -Message "Potentionally Unwanted Application-protection is disabled."
+            }
         }
         catch [System.Exception] 
             {
@@ -371,6 +384,43 @@ $ATPStatus = get-service -displayname "Windows Defender Advanced Threat Protecti
 catch [System.Exception] 
             {
                 Write-LogEntry -Type Error -Message "Failed to check status of $ATP"
+            }
+            
+        catch {
+            Write-Error $_.Exception 
+            break
+        }
+}
+
+Function Get-MAPS(){
+    <#
+    .DESCRIPTION
+    Checks MAPS for status of cloud-delivered protection
+    URL: https://docs.microsoft.com/en-us/windows/security/threat-protection/microsoft-defender-antivirus/configure-network-connections-microsoft-defender-antivirus#validate-connections-between-your-network-and-the-cloud"
+        
+    .EXAMPLE
+    Get-MAPS
+    #>
+    
+    #Variable
+    $MAPS = Set-Location "C:\Program Files\Windows Defender\"
+    $Test = (.\MpCmdRun.exe -validatemapsconnection)
+        
+  try {
+    Write-LogEntry -Message "[MAPS - Cloud-delivered protection for Windows Defender]"  
+    If ($Test -eq "ValidateMapsConnection successfully established a connection to MAPS")
+{
+Write-LogEntry -Type Success -Message "ValidateMapsConnection successfully established a connection to MAPS. 
+Cloud-delivered protection is enabled."
+}
+else 
+{
+Write-LogEntry -Type Warning -Message "ValidateMapsConnection failed. Verify that you have enabled Cloud-delivered protection."
+}
+}
+catch [System.Exception] 
+            {
+                Write-LogEntry -Type Error -Message "Failed to check status of $MAPS"
             }
             
         catch {
@@ -712,6 +762,10 @@ Get-Defender
 
 if ($DefenderATP) {
 Get-DefenderATP
+}
+
+if ($MAPS) {
+Get-MAPS
 }
 
 if($LAPS){
