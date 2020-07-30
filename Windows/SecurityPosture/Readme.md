@@ -9,7 +9,8 @@ Currently the script detects the status of:
 - TPM
 - Bitlocker
 - UEFI
-- SecureBootDefender
+- SecureBoot 
+- Defender
 - CloudProtectionService (MAPS for Defender)
 - DefenderATP
 - ApplicationGuard
