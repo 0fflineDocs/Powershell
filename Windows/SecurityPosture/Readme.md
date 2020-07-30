@@ -24,3 +24,5 @@ The script will write entries to a log file residing at the client (*C:\Windows\
 which preferably is read using [CMTrace](https://www.microsoft.com/en-us/download/confirmation.aspx?id=50012) or [OneTrace](https://docs.microsoft.com/en-us/mem/configmgr/core/support/support-center-onetrace).
 
 The script itself can be found and installed via [Powershell Gallery](https://www.powershellgallery.com/packages/SecurityPosture)  
+
+[Upcomfing Features & Improvements](https://github.com/Sculpin90/Powershell/projects/1)
