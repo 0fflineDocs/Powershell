@@ -1,17 +1,39 @@
+
 <#PSScriptInfo
 
-.VERSION 0.1
+.VERSION 0.2
 
-.GUID df2a92c8-29c5-4dc9-bb3e-2f934b536a9b
+.GUID 885ce4f1-9c59-473f-afab-6d67830c40e8
 
 .AUTHOR @0fflineDocs
 
+.COMPANYNAME 
+
+.COPYRIGHT 
+
+.TAGS Device Security, Device Management
+
+.LICENSEURI 
+
+.PROJECTURI 
+
+.ICONURI 
+
+.EXTERNALMODULEDEPENDENCIES 
+
+.REQUIREDSCRIPTS 
+
+.EXTERNALSCRIPTDEPENDENCIES 
+
+.RELEASENOTES
+
+
 #>
 
-<#
+<# 
 
-.DESCRIPTION
-Security Posture is a powershell script for detecting status of different security related device features related to Microsoft 365 on Windows 10.
+.DESCRIPTION 
+ Security Posture is a powershell script for detecting status of different security related device features related to Microsoft 365 on Windows 10.
 Currently the script detects the status of:
 
 Operating System
@@ -43,9 +65,9 @@ Query every function using the -All switch:
 
 Query using functions:
 Get-BitLockerVolume (returns information about Bitlocker in the PC)
-Get-OperatingSystem (returns the current PCs OS-Edition, Architecture, Version, and Buildnumber)
+Get-OperatingSystem (returns the current PCs OS-Edition, Architecture, Version, and Buildnumber) 
 
-#>
+#> 
 
 [cmdletbinding( DefaultParameterSetName = 'Security' )]
 param(
