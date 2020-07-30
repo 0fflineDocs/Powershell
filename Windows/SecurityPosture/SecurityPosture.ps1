@@ -1,9 +1,21 @@
+<#PSScriptInfo
+
+.VERSION 0.1
+
+.GUID df2a92c8-29c5-4dc9-bb3e-2f934b536a9b
+
+.AUTHOR @0fflineDocs
+
+#>
+
 <#
 
 .DESCRIPTION
+Security Posture
 
 .EXAMPLE
-.\Security_Posture_CIM.ps1 -OS -TPM -Bitlocker -UEFISECBOOT -Defender -DefenderATP -MAPS -LAPS -ApplicationGuard -Sandbox -CredentialGuardPreReq -CredentialGuard -DeviceGuard -AttackSurfaceReduction -ControlledFolderAccess
+.\Security_Posture_CIM.ps1 -OS -TPM -Bitlocker -UEFISECBOOT -Defender -DefenderATP -MAPS -ApplicationGuard -Sandbox -CredentialGuardPreReq -CredentialGuard -DeviceGuard -AttackSurfaceReduction -ControlledFolderAccess
+
 #>
 
 [cmdletbinding( DefaultParameterSetName = 'Security' )]
@@ -16,19 +28,17 @@ param(
 [switch]$Defender,
 [switch]$DefenderATP,
 [switch]$MAPS,
-[switch]$LAPS,
 [switch]$ApplicationGuard,
 [switch]$Sandbox,
 [switch]$CredentialGuardPreReq,
 [switch]$CredentialGuard,
 [switch]$DeviceGuard,
 [switch]$AttackSurfaceReduction,
-[switch]$ControlledFolderAccess,
-[switch]$ExploitProtection)
+[switch]$ControlledFolderAccess)
 
 #Global Variables
 $ScriptVersion = "0.1"
-$clientPath = "C:\Temp"
+$clientPath = "C:\Windows\Temp"
 $PC = $env:computername 
 $script:logfile = "$clientPath\Client-SecurityPosture.log"
 
@@ -119,6 +129,9 @@ Function Get-OperatingSystem(){
     .EXAMPLE
     Get-OperatingSystem
     #>
+
+    #Pre-Req for Get-CimInstance
+    Get-Service -Name WinRM | Start-Service
 
     #Variable
     $win32os = Get-CimInstance Win32_OperatingSystem -computername $PC | Select-Object Caption, OSArchitecture, Version, Buildnumber, OperatingSystemSKU -ErrorAction silentlycontinue
@@ -767,10 +780,6 @@ if ($MAPS) {
 Get-MAPS
 }
 
-if($LAPS){
-#Get-ADcomputer $PC -prop ms-Mcs-AdmPwd,ms-Mcs-AdmPwdExpirationTime
-}
-
 if($ApplicationGuard){
 Get-ApplicationGuard
 }
@@ -799,23 +808,3 @@ if ($ControlledFolderAccess) {
 Get-ControlledFolderAccess
 }
 
-if ($ApplicationControl) {
-    $APCStatus = "GET LOG FILES Event Viewer under Applications and Services Logs > Microsoft > Windows > Code Integrity > Operational."
-    if ($APCStatus.xxxx -eq "??") {
-        Write-LogEntry -Message "Checking status and configuration of Application Control..."
-    }
-    try {
-        if (...) 
-    {
-    Write-LogEntry -Message "..."
-    }
-        else 
-        {
-            Write-LogEntry -Message "..."
-        }
-}
-catch [System.Exception] 
-    {
-        Write-LogEntry -Message "Failed to check status of $ApplicationControl"
-    }
-}
