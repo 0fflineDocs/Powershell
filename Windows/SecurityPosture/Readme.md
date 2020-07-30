@@ -26,3 +26,8 @@ which preferably is read using [CMTrace](https://www.microsoft.com/en-us/downloa
 The script itself can be found and installed via [Powershell Gallery](https://www.powershellgallery.com/packages/SecurityPosture)  
 
 [Upcomfing Features & Improvements](https://github.com/Sculpin90/Powershell/projects/1)
+
+My blog: [Device Management](https://devicemanagement.home.blog/)  
+Twitter: [0fflineDocs](https://twitter.com/0fflineDocs)   
+Github: [Sculpin90](https://github.com/Sculpin90)       
+Current Project: [Security Posture](https://github.com/Sculpin90/Powershell/projects/1) :cloud:  
