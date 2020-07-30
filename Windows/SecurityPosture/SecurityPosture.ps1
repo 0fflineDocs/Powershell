@@ -34,7 +34,7 @@ Each area listed above can be called as individual functions or every function i
 The script will write entries to a log file residing at the client (C:\Windows\Temp\Client-SecurityPosture.log)
 which preferably is read using CMTrace or OneTrace.
 
-.EXAMPLES
+.EXAMPLE
 Query using indvidual switches:
 .\SecurityPosture.ps1 -OS -TPM -Bitlocker -UEFISECBOOT -Defender -DefenderATP -MAPS -ApplicationGuard -Sandbox -CredentialGuardPreReq -CredentialGuard -DeviceGuard -AttackSurfaceReduction -ControlledFolderAccess
 
