@@ -1,5 +1,7 @@
 ### Security Posture 
 
+#### Install-Script -Name SecurityPosture
+
 #### This is a powershell script for detecting status of different security-related features regarding Microsoft 365 on Windows 10. 
 Currently the script detects the status of:   
 
@@ -21,4 +23,3 @@ The script will write entries to a log file residing at the client (*C:\Windows\
 which preferably is read using [CMTrace](https://www.microsoft.com/en-us/download/confirmation.aspx?id=50012) or [OneTrace](https://docs.microsoft.com/en-us/mem/configmgr/core/support/support-center-onetrace).
 
 The script itself can be found and installed via [Powershell Gallery](https://www.powershellgallery.com/packages/SecurityPosture)  
-#### Install-Script -Name SecurityPosture
