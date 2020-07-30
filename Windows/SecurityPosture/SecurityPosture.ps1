@@ -11,16 +11,46 @@
 <#
 
 .DESCRIPTION
-Security Posture
+Security Posture is a powershell script for detecting status of different security related device features related to Microsoft 365 on Windows 10.
+Currently the script detects the status of:
 
-.EXAMPLE
-.\Security_Posture_CIM.ps1 -OS -TPM -Bitlocker -UEFISECBOOT -Defender -DefenderATP -MAPS -ApplicationGuard -Sandbox -CredentialGuardPreReq -CredentialGuard -DeviceGuard -AttackSurfaceReduction -ControlledFolderAccess
+Operating System
+TPM
+Bitlocker
+UEFI
+SecureBoot
+Defender
+CloudProtectionService (MAPS for Defender)
+DefenderATP
+ApplicationGuard
+Windows Sandbox
+Credential Guard
+Device Guard
+Attack Surface Reduction
+Controlled Folder Access
+
+Each area listed above can be called as individual functions or every function in the script can be called utilizing the -All switch.
+
+The script will write entries to a log file residing at the client (C:\Windows\Temp\Client-SecurityPosture.log)
+which preferably is read using CMTrace or OneTrace.
+
+.EXAMPLES
+Query using indvidual switches:
+.\SecurityPosture.ps1 -OS -TPM -Bitlocker -UEFISECBOOT -Defender -DefenderATP -MAPS -ApplicationGuard -Sandbox -CredentialGuardPreReq -CredentialGuard -DeviceGuard -AttackSurfaceReduction -ControlledFolderAccess
+
+Query every function using the -All switch:
+.\SecurityPosture.ps1 -All
+
+Query using functions:
+Get-BitLockerVolume (returns information about Bitlocker in the PC)
+Get-OperatingSystem (returns the current PCs OS-Edition, Architecture, Version, and Buildnumber)
 
 #>
 
 [cmdletbinding( DefaultParameterSetName = 'Security' )]
 param(
 [switch]$SecPos,
+[Switch]$All,
 [switch]$OS,
 [switch]$TPM,
 [switch]$Bitlocker,
@@ -55,11 +85,11 @@ Break
 
 <# FUNCTIONS #>
 
-#Display descriptive information about the module and it's environment
+#Display descriptive information about the script and it's environment
 Function SecPos {
     Clear-Host
     Write-Output "----------------------------------------------"
-    Write-Output ">          Module: Security Posture"
+    Write-Output ">          Script: Security Posture"
     Write-Output "----------------------------------------------"
     Write-Output ">               Version: $ScriptVersion"
     Write-Output "----------------------------------------------"
@@ -808,3 +838,21 @@ if ($ControlledFolderAccess) {
 Get-ControlledFolderAccess
 }
 
+if ($All) 
+{
+    SecPos
+    Get-OperatingSystem
+    Get-Tpm
+    Get-Bitlocker       
+    Get-UefiSecureBoot
+    Get-Defender
+    Get-DefenderATP
+    Get-MAPS
+    Get-ApplicationGuard
+    Get-Sandbox
+    Get-CredentialGuardPreReq
+    Get-CredentialGuard
+    Get-DeviceGuard
+    Get-AttackSurfaceReduction
+    Get-ControlledFolderAccess
+}
