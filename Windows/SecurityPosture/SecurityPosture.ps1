@@ -96,7 +96,7 @@ Function SecPos {
     Write-Output ">      Logfiles will be genereated to:" 
     Write-Output ">    $script:logfile"
     Write-Output "----------------------------------------------"
-    Write-Output "> Help: 'Get-Command -Module SecurityPosture'"
+    Write-Output "> Help: 'See the description in this script.'"
     Write-Output "----------------------------------------------"
     Write-Output ">               @0fflineDocs"
 	Write-Output "----------------------------------------------"
