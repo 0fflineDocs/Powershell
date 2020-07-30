@@ -1,34 +1,40 @@
 
 <#PSScriptInfo
 
-.VERSION 0.2
+.VERSION 0.4
 
 .GUID 885ce4f1-9c59-473f-afab-6d67830c40e8
 
 .AUTHOR @0fflineDocs
 
-.COMPANYNAME 
+.COMPANYNAME
 
-.COPYRIGHT 
+.COPYRIGHT
 
 .TAGS Device Security, Device Management
 
-.LICENSEURI 
+.LICENSEURI
 
-.PROJECTURI 
+.PROJECTURI
 
-.ICONURI 
+.ICONURI
 
 .EXTERNALMODULEDEPENDENCIES 
 
-.REQUIREDSCRIPTS 
+.REQUIREDSCRIPTS
 
-.EXTERNALSCRIPTDEPENDENCIES 
+.EXTERNALSCRIPTDEPENDENCIES
 
 .RELEASENOTES
 
 
-#>
+.PRIVATEDATA
+
+#> 
+
+
+
+
 
 <# 
 
@@ -343,10 +349,10 @@ Function Get-Defender(){
    
     try {
     Write-LogEntry -Message "[Defender]"
-    $Service = get-service -DisplayName "Windows Defender Antivirus Service" -ErrorAction SilentlyContinue
+    $Service = get-service -DisplayName "Microsoft Defender Antivirus Service" -ErrorAction SilentlyContinue
     if ($Service.Status -eq "Running")
     {
-    Write-LogEntry -Type Success -Message "Windows Defender Antivirus Service is active and running in $PC" 
+    Write-LogEntry -Type Success -Message "Microsoft Defender Antivirus Service is active and running in $PC" 
     }
     else 
     {
@@ -354,59 +360,59 @@ Function Get-Defender(){
     }
     if ($Defenderstatus.AntivirusEnabled -eq "True") 
     {                
-    Write-LogEntry -Type Success -Message "Antivirus is Enabled"
+    Write-LogEntry -Type Success -Message "Antivirus is enabled."
     }
     else  
         {
-            Write-LogEntry -Type Error -Message "Antivirus is Disabled"
+            Write-LogEntry -Type Error -Message "Antivirus is disabled."
         }
         if ($Defenderstatus.AntispywareEnabled -eq "True") 
         {
-            Write-LogEntry -Type Success -Message "Antispyware is Enabled"
+            Write-LogEntry -Type Success -Message "Antispyware is enabled."
         }
         else 
         {
-            Write-LogEntry -Type Warning -Message "Antispyware is Disabled"
+            Write-LogEntry -Type Warning -Message "Antispyware is disabled."
         }
         if ($Defenderstatus.RealTimeProtectionEnabled -eq "True") 
         {
-            Write-LogEntry -Type Success -Message "Real Time Protection is Enabled"
+            Write-LogEntry -Type Success -Message "Real Time Protection is enabled."
         }
             else 
             {
-            Write-LogEntry -Type Warning -Message "Real Time Protection is Disabled"
+            Write-LogEntry -Type Warning -Message "Real Time Protection is disabled."
             }    
         if ($Defenderstatus.IsTamperProtected -eq "True") 
         {
-            Write-LogEntry -Type Success -Message "Tamper Protection is Enabled"
+            Write-LogEntry -Type Success -Message "Tamper Protection is enabled."
         }
             else 
             {
-            Write-LogEntry -Type Warning -Message "Tamper Protection is Disabled"
+            Write-LogEntry -Type Warning -Message "Tamper Protection is disabled."
             }   
         if ($Defenderstatus.IoavProtectionEnabled -eq "True") 
         {
-        Write-LogEntry -Type Success -Message "IOAV Protection is Enabled"
+        Write-LogEntry -Type Success -Message "IOAV Protection is enabled."
         }
             else 
             {
-                Write-LogEntry -Type Warning -Message "IOAV Protection is Disabled"
+                Write-LogEntry -Type Warning -Message "IOAV Protection is disabled."
             }
         if ($Defenderstatus.EnableNetworkProtection -eq "1") 
             {
-                Write-LogEntry -Type Success -Message "Network Protection is Enabled"
+                Write-LogEntry -Type Success -Message "Network Protection is enabled."
             }
         else 
             {
-                Write-LogEntry -Type Warning -Message "Network Protection is Disabled"
+                Write-LogEntry -Type Warning -Message "Network Protection is disabled."
             }    
-        if ($Defenderstatus.PUAProtection -eq "1") 
-            {
-                Write-LogEntry -Type Success -Message "Potentionally Unwanted Application-protection is enabled."
-            }
         if ($Defenderstatus.PUAProtection -eq "2") 
             {
-                Write-LogEntry -Type Warning -Message "Potentionally Unwanted Application-protection is in audit-mode."
+                Write-LogEntry -Type Warning-Message "Potentionally Unwanted Application-protection is in audit-mode."
+            }
+        elseif ($Defenderstatus.PUAProtection -eq "1") 
+            {
+                Write-LogEntry -Type Success -Message "Potentionally Unwanted Application-protection is enabled."
             }
         Else 
             {
