@@ -2,7 +2,7 @@
 
 ![PowerShell Gallery Version](https://img.shields.io/powershellgallery/v/SecurityPosture) ![PowerShell Gallery](https://img.shields.io/powershellgallery/dt/SecurityPosture)
 
-#### Install-Script -Name SecurityPosture
+#### Install-Script -Name [SecurityPosture](https://www.powershellgallery.com/packages/SecurityPosture)
 
 #### This is a powershell script for detecting status of different security related device features related to Microsoft 365 on Windows 10. 
 Currently the script detects the status of:   
