@@ -1,4 +1,11 @@
-[Control Panel]
+Regedit -m
+Dir *.cpl & dir *.msc
+SystemPropertiesRemote.exe
+Compmgmt.msc /computer:COMPUTERNAME
+Gpedit.msc /gpcomputer:"\\COMPUTERNAME"
+Timeout /t 10
+
+#Control Panel
 MEMCM: Control smscfgrc 
 MEMCM Software Center: Softwarecenter: 
 Network: Ncpa.cpl 
@@ -7,13 +14,12 @@ Resolution: Desk.cpl
 Device Manager: HdwWiz.cpl 
 System Properties: sysdm.cpl 
 Certificates Local Computer: certlm.msc
-Certificates Current User: certmgr.msc
 DiskManagement: diskmgmt.msc
 Printers: Control printers
 
-[Windows Update]	
+#Windows Update	
 ms-settings:windowsupdate
 ms-settings:windowsupdate-action
 
-[AzureAD]
+#Check status AzureAD
 dsregcmd /status 
