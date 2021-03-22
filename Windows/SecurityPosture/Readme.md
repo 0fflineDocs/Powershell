@@ -14,7 +14,7 @@ Currently the script detects the status of:
 - SecureBoot 
 - Defender
 - CloudProtectionService (MAPS for Defender)
-- DefenderATP
+- Defender for Endpoint
 - ApplicationGuard
 - Windows Sandbox
 - Credential Guard
