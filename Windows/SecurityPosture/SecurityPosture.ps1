@@ -124,7 +124,7 @@ Function SecPos {
     Write-Output "        Help: 'Securityposture -Help'"
     Write-Output "----------------------------------------------"
     Write-Output "                 @0fflineDocs"
-	Write-Output "----------------------------------------------"
+    Write-Output "----------------------------------------------"
 }
     
 Function Help {
