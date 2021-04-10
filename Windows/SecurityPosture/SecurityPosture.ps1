@@ -1,9 +1,9 @@
 
 <#PSScriptInfo
 
-.VERSION 0.4
+.VERSION 0.8
 
-.GUID 885ce4f1-9c59-473f-afab-6d67830c40e8
+.GUID db087c94-c946-450f-81a6-568db251c536
 
 .AUTHOR @0fflineDocs
 
@@ -30,11 +30,7 @@
 
 .PRIVATEDATA
 
-#> 
-
-
-
-
+#>
 
 <# 
 
@@ -49,8 +45,8 @@ UEFI
 SecureBoot
 Defender
 CloudProtectionService (MAPS for Defender)
-DefenderATP
-ApplicationGuard
+Defender for Endpoint
+Application Guard
 Windows Sandbox
 Credential Guard
 Device Guard
@@ -64,13 +60,13 @@ which preferably is read using CMTrace or OneTrace.
 
 .EXAMPLE
 Query using indvidual switches:
-.\SecurityPosture.ps1 -OS -TPM -Bitlocker -UEFISECBOOT -Defender -DefenderATP -MAPS -ApplicationGuard -Sandbox -CredentialGuardPreReq -CredentialGuard -DeviceGuard -AttackSurfaceReduction -ControlledFolderAccess
+SecurityPosture -OS -TPMStatus -Bitlocker -UEFISECBOOT -Defender -DefenderforEndpoint -MAPS -ApplicationGuard -Sandbox -CredentialGuardPreReq -CredentialGuard -DeviceGuard -AttackSurfaceReduction -ControlledFolderAccess
 
 Query every function using the -All switch:
-.\SecurityPosture.ps1 -All
+SecurityPosture -All
 
 Query using functions:
-Get-BitLockerVolume (returns information about Bitlocker in the PC)
+Get-BitLocker (returns information about Bitlocker in the PC)
 Get-OperatingSystem (returns the current PCs OS-Edition, Architecture, Version, and Buildnumber) 
 
 #> 
@@ -78,13 +74,14 @@ Get-OperatingSystem (returns the current PCs OS-Edition, Architecture, Version, 
 [cmdletbinding( DefaultParameterSetName = 'Security' )]
 param(
 [switch]$SecPos,
+[switch]$Help,
 [Switch]$All,
 [switch]$OS,
-[switch]$TPM,
+[switch]$TPMStatus,
 [switch]$Bitlocker,
 [switch]$UEFISECBOOT,
 [switch]$Defender,
-[switch]$DefenderATP,
+[switch]$DefenderforEndpoint,
 [switch]$MAPS,
 [switch]$ApplicationGuard,
 [switch]$Sandbox,
@@ -95,7 +92,7 @@ param(
 [switch]$ControlledFolderAccess)
 
 #Global Variables
-$ScriptVersion = "0.1"
+$ScriptVersion = "0.8"
 $clientPath = "C:\Windows\Temp"
 $PC = $env:computername 
 $script:logfile = "$clientPath\Client-SecurityPosture.log"
@@ -117,19 +114,33 @@ Break
 Function SecPos {
     Clear-Host
     Write-Output "----------------------------------------------"
-    Write-Output ">          Script: Security Posture"
+    Write-Output "           Script: Security Posture"
     Write-Output "----------------------------------------------"
-    Write-Output ">               Version: $ScriptVersion"
+    Write-Output "                 Version: $ScriptVersion"
     Write-Output "----------------------------------------------"
-    Write-Output ">      Logfiles will be genereated to:" 
-    Write-Output ">    $script:logfile"
+    Write-Output "      Logfiles will be genereated to:" 
+    Write-Output "  $script:logfile"
     Write-Output "----------------------------------------------"
-    Write-Output "> Help: 'See the description in this script.'"
+    Write-Output "        Help: 'Securityposture -Help'"
     Write-Output "----------------------------------------------"
-    Write-Output ">               @0fflineDocs"
+    Write-Output "                 @0fflineDocs"
 	Write-Output "----------------------------------------------"
-    }
+}
     
+Function Help {
+Write-Host "[HELP]" -ForegroundColor Green
+Write-Host "The script will write entries to a log file residing at the client at this location: (C:\Windows\Temp\Client-SecurityPosture.log)" `n -ForegroundColor White
+Write-Host "You can query this script using indvidual switches and choose which ones you want to use:" -ForegroundColor Yellow 
+Write-Host "SecurityPosture -OS -TPMStatus -Bitlocker -UEFISECBOOT -Defender -DefenderforEndpoint -MAPS -ApplicationGuard -Sandbox -CredentialGuardPreReq -CredentialGuard -DeviceGuard -AttackSurfaceReduction -ControlledFolderAccess" `n -ForegroundColor White
+
+Write-Host "You can also query every switch in this script using a global switch which includes all available options." -ForegroundColor Yellow
+Write-Host "SecurityPosture -All" `n -ForegroundColor White
+    
+Write-Host "Each switch can also be queried separately as a function:" -ForegroundColor Yellow
+Write-Host "Get-BitLocker (returns information about Bitlocker in the PC)" -ForegroundColor White
+Write-Host "Get-OperatingSystem (returns the current PCs OS-Edition, Architecture, Version, and Buildnumber)" `n -ForegroundColor White
+}    
+
 function Write-LogEntry {
     [cmdletBinding()]
     param (
@@ -211,41 +222,46 @@ Function Get-OperatingSystem(){
         }
 }
 
-Function Get-TPM(){
+Function Get-TPMStatus(){
     <#
     .DESCRIPTION
     Checks if the TPM is enabled and configured correctly in the device.
     
     .EXAMPLE
-    Get-TPM
+    Get-TPMStatus
     #>
 
-    #Variable
-    $TPMStatus = (Get-CIMClass -Namespace ROOT\CIMV2\Security\MicrosoftTpm -Class Win32_Tpm -ErrorAction silentlycontinue)
-        try {
-           
-            try {
-                Write-LogEntry -Message "***[TPM]***"
-                if ($TPMStatus.isenabled -eq "True")
-                {                
-                Write-LogEntry -Type Success -Message "TPM-chip is enabled and configured correctly in $PC"
-                }
-                    else  
-                    {
-                        Write-LogEntry -Type Warning -Message "TPM is not enabled and not configured correctly in $PC"
-                    }
-                }
-                catch [System.Exception] 
-                    {
-                        Write-LogEntry -Type Error -Message "Failed to check status of $TPM"
-                    }
-                }
-            
-        catch {
-            Write-Error $_.Exception 
-            break
-        }
-}
+  #Variable
+  $TPMStatus = (Get-TPM)
+
+  try {
+      Write-LogEntry -Message "[TPM]"
+      if ($TPMStatus.TPMEnabled -contains "True")
+      {                
+      Write-LogEntry -Type Success -Message "TPM-chip is enabled in $PC"
+      }
+          else  
+          {
+              Write-LogEntry -Message "TPM is not enabled in $PC"
+          }
+          if ($TPMStatus.TPMActivated-contains "True")
+          {                
+          Write-LogEntry -Type Success -Message "TPM-chip is activated in $PC"
+          }
+          else  
+          {
+              Write-LogEntry -Message "TPM is not activated in $PC"
+          }
+    }
+      catch [System.Exception] 
+          {
+              Write-LogEntry -Message "Failed to check status of $TPM"
+          }
+          catch {
+              Write-Error $_.Exception 
+              break
+          }
+}    
 
 Function Get-Bitlocker(){
     <#
@@ -342,11 +358,12 @@ Function Get-Defender(){
     #>
    
     #Variable
+    $Current = Get-Location
     $p = Get-MpPreference
     $c = Get-MpComputerStatus
     $p = @($p)
     $Defenderstatus = ($p += $c)
-   
+    Set-Location $Current
     try {
     Write-LogEntry -Message "[Defender]"
     $Service = get-service -DisplayName "Microsoft Defender Antivirus Service" -ErrorAction SilentlyContinue
@@ -408,7 +425,7 @@ Function Get-Defender(){
             }    
         if ($Defenderstatus.PUAProtection -eq "2") 
             {
-                Write-LogEntry -Type Warning-Message "Potentionally Unwanted Application-protection is in audit-mode."
+                Write-LogEntry -Type Warning -Message "Potentionally Unwanted Application-protection is in audit-mode."
             }
         elseif ($Defenderstatus.PUAProtection -eq "1") 
             {
@@ -429,26 +446,26 @@ Function Get-Defender(){
            }
 }
 
-Function Get-DefenderATP(){
+Function Get-DefenderforEndpoint(){
 <#
 .DESCRIPTION
-Checks Defender ATP service status.
+Checks Defender for Endpoint (formerly Defender ATP) service status.
     
 .EXAMPLE
-Get-DefenderATP
+Get-DefenderforEndpoint
 #>
 
 #Variable
-$ATPStatus = get-service -displayname "Windows Defender Advanced Threat Protection Service" -ErrorAction SilentlyContinue
+$ATPStatus = get-service -ServiceName "Sense" -ErrorAction SilentlyContinue
     try {
-        Write-LogEntry -Message "[Defender ATP]"
+        Write-LogEntry -Message "[Defender for Endpoint]"
     if ($ATPStatus.Status -eq "Running") 
     {
-        Write-Logentry -Type Success -Message "Defender ATP Service is running."
+        Write-Logentry -Type Success -Message "Defender for Endpoint Service is running."
     }
     else 
             {
-                Write-LogEntry -Type Warning -Message "Defender ATP Service is not running."
+                Write-LogEntry -Type Warning -Message "Defender for Endpoint Service is not running."
             }
 }
 catch [System.Exception] 
@@ -473,9 +490,10 @@ Function Get-MAPS(){
     #>
     
     #Variable
+    $Current = Get-Location
     $MAPS = Set-Location "C:\Program Files\Windows Defender\"
     $Test = (.\MpCmdRun.exe -validatemapsconnection)
-        
+    Set-Location $Current
   try {
     Write-LogEntry -Message "[MAPS - Cloud-delivered protection for Windows Defender]"  
     If ($Test -eq "ValidateMapsConnection successfully established a connection to MAPS")
@@ -497,6 +515,7 @@ catch [System.Exception]
             Write-Error $_.Exception 
             break
         }
+        
 }
 
 Function Get-ApplicationGuard(){
@@ -655,8 +674,7 @@ Get-DeviceGuard
         
 #Variables
 $DevGuardStatus = Get-CimInstance -classname Win32_DeviceGuard -namespace root\Microsoft\Windows\DeviceGuard -ErrorAction SilentlyContinue
-$DevGuardInfo = Get-Computerinfo | Select-Object -Property DeviceGuard*
-        
+$DevGuardInfo = Get-Computerinfo | Select-Object -Property DeviceGuard*  
         try {
             Write-LogEntry -Message "[Device Guard]" 
             if ($DevGuardStatus.CodeIntegrityPolicyEnforcementStatus -like 1)
@@ -728,10 +746,12 @@ Get-AttackSurfaceReduction
 #>
             
 #Variable
+$Current = Get-Location
 $p = Get-MpPreference -ErrorAction SilentlyContinue
 $c = Get-MpComputerStatus -ErrorAction SilentlyContinue
 $p = @($p)
 $ASRstatus = ($p += $c)
+Set-Location $Current
 
     try {
         Write-LogEntry -Message "[Attack Surface Reduction]"
@@ -776,10 +796,12 @@ Get-ControlledFolderAccess
 #>
                 
 #Variable
+$Current = Get-Location
 $p = Get-MpPreference -ErrorAction SilentlyContinue
 $c = Get-MpComputerStatus -ErrorAction SilentlyContinue
 $p = @($p)
 $CFAstatus = ($p += $c)
+Set-Location $Current
     try {
         Write-LogEntry -Message "Checking status and configuration for Attack Surface Reduction..."
         if ($CFAstatus.EnableControlledFolderAccess -eq "2") 
@@ -810,12 +832,16 @@ if($SecPos){
 SecPos
 }
 
+if($Help){
+Help
+}
+
 if($OS){
 Get-OperatingSystem
 }
 
 if ($TPM) {
-Get-Tpm
+Get-TPMStatus
 }
 
 if ($Bitlocker) {
@@ -830,8 +856,8 @@ if ($Defender) {
 Get-Defender
 }
 
-if ($DefenderATP) {
-Get-DefenderATP
+if ($DefenderforEndpoint) {
+Get-DefenderforEndpoint
 }
 
 if ($MAPS) {
@@ -866,21 +892,20 @@ if ($ControlledFolderAccess) {
 Get-ControlledFolderAccess
 }
 
-if ($All) 
-{
-    SecPos
-    Get-OperatingSystem
-    Get-Tpm
-    Get-Bitlocker       
-    Get-UefiSecureBoot
-    Get-Defender
-    Get-DefenderATP
-    Get-MAPS
-    Get-ApplicationGuard
-    Get-Sandbox
-    Get-CredentialGuardPreReq
-    Get-CredentialGuard
-    Get-DeviceGuard
-    Get-AttackSurfaceReduction
-    Get-ControlledFolderAccess
+if ($All) {
+SecPos
+Get-OperatingSystem
+Get-TPMStatus
+Get-Bitlocker       
+Get-UefiSecureBoot
+Get-Defender
+Get-DefenderforEndpoint
+Get-MAPS
+Get-ApplicationGuard
+Get-Sandbox
+Get-CredentialGuardPreReq
+Get-CredentialGuard
+Get-DeviceGuard
+Get-AttackSurfaceReduction
+Get-ControlledFolderAccess
 }
