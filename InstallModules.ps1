@@ -14,3 +14,5 @@ Install-Module -Name IntuneWin32App
 Install-module -Name Exchangeonline -Force
 Install-Module -Name ExchangeOnlineManagement -Repository PSGallery -Scope AllUsers -MinimumVersion 0.3374.9 -AllowClobber -Confirm:$false -Force
 Install-Module PSReadline -AllowPrerelease -force
+Install-Module -Name Terminal-Icons -Repository PSGallery
+Install-Module oh-my-posh -Scope CurrentUser -AllowPrerelease
