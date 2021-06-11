@@ -1,18 +1,27 @@
-#Modules
-Install-Module PowerShellGet -force
+#Update PowershellGet to latest
 Set-ExecutionPolicy Bypass
-Import-Module PowerShellGet
+Install-PackageProvider -Name NuGet -Force
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+Install-Module -Name PowerShellGet -Force
+Update-Module -Name PowerShellGet
 
+Install-Module -Name AzureAD -Force -Scope AllUsers
+Install-Module -Name AzureADPreview -AllowClobber -Force -Scope AllUsers
+Install-Module -Name DCToolBox -Force -Scope AllUsers
+Install-Module -Name MSOnline -Force -Scope AllUsers
+Install-Module -Name SharepointOnline -Force -Scope AllUsers
+Install-Module -Name MicrosoftTeams -Force -Scope AllUsers
+Install-module -Name ExchangeOnline -Force -Scope AllUsers 
+Install-Module -Name PSReadline -force -Scope AllUsers
+Install-Module -Name Microsoft.Graph.Intune -Force -Scope AllUsers
+Install-Module -Name WindowsAutopilotIntune -Force -Scope AllUsers
+Install-Module -Name Convert-WindowsImage -Force -Scope AllUsers 
+Install-Module -Name IntuneWin32App -Force -Scope AllUsers
+Install-Module -Name Terminal-Icons -Force -Scope AllUsers
+Install-Module -Name Oh-my-posh -Force -Scope AllUsers
+
+#LEGACY
 Install-Module ActiveDirectory -force
 Enable-WindowsOptionalFeature -Online -FeatureName RSATClient-Roles-AD-Powershell (CLIENTOS)
 Install-WindowsFeature RSAT-AD-PowerShell (SERVEROS)
-Install-Module AzureAD -force
-Install-Module AzureADPreview -AllowClobber -force
-Install-Module Microsoft.Graph.Intune -force
-Install-Module WindowsAutopilotIntune -force
-Install-Module -Name IntuneWin32App
-Install-module -Name Exchangeonline -Force
-Install-Module -Name ExchangeOnlineManagement -Repository PSGallery -Scope AllUsers -MinimumVersion 0.3374.9 -AllowClobber -Confirm:$false -Force
-Install-Module PSReadline -AllowPrerelease -force
-Install-Module -Name Terminal-Icons -Repository PSGallery
-Install-Module oh-my-posh -Scope CurrentUser -AllowPrerelease
