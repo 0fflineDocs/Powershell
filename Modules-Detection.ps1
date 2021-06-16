@@ -1,0 +1,9 @@
+(Get-Module -ListAvailable -Name AzureAD -ErrorAction SilentlyContinue) | Select-Object Name, Version
+(Get-Module -ListAvailable -Name AzureADPreview -ErrorAction SilentlyContinue) | Select-Object Name, Version 
+(Get-Module -ListAvailable -Name DCToolbox -ErrorAction SilentlyContinue) | Select-Object Name, Version
+(Get-Module -ListAvailable -Name Microsoft.Graph.Intune -ErrorAction SilentlyContinue) | Select-Object Name, Version
+(Get-Module -ListAvailable -Name MSOnline -ErrorAction SilentlyContinue) | Select-Object Name, Version
+(Get-Module -ListAvailable -Name Microsoft.Online.SharePoint.PowerShell -ErrorAction SilentlyContinue) | Select-Object Name, Version 
+(Get-Module -ListAvailable -Name MicrosoftTeams -ErrorAction SilentlyContinue) | Select-Object Name, Version
+(Get-Module -ListAvailable -Name ExchangeOnlineManagement -ErrorAction SilentlyContinue) | Select-Object Name, Version
+(Get-Module -ListAvailable -Name WindowsAutopilotIntune -ErrorAction SilentlyContinue) | Select-Object Name, Version
