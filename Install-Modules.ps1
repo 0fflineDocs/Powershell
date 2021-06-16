@@ -20,6 +20,7 @@ Install-Module -Name Convert-WindowsImage -Force -Scope AllUsers
 Install-Module -Name IntuneWin32App -Force -Scope AllUsers
 Install-Module -Name Terminal-Icons -Force -Scope AllUsers
 Install-Module -Name Oh-my-posh -Force -Scope AllUsers
+Set-ExecutionPolicy Restricted
 
 #LEGACY
 Install-Module ActiveDirectory -force
