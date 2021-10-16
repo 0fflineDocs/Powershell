@@ -44,14 +44,17 @@ Bitlocker
 UEFI
 SecureBoot
 Defender
-CloudProtectionService (MAPS for Defender)
+Cloud Protection Service (MAPS for Defender)
+Block at first Sight
 Defender for Endpoint
 Application Guard
 Windows Sandbox
 Credential Guard
 Device Guard
-Attack Surface Reduction
+Attack Surface Reduction Rules
 Controlled Folder Access
+AppLocker
+Application Control
 
 Each area listed above can be called as individual functions or every function in the script can be called utilizing the -All switch.
 
@@ -83,16 +86,20 @@ param(
 [switch]$Defender,
 [switch]$DefenderforEndpoint,
 [switch]$MAPS,
+[switch]$BAFS,
 [switch]$ApplicationGuard,
 [switch]$Sandbox,
 [switch]$CredentialGuardPreReq,
 [switch]$CredentialGuard,
 [switch]$DeviceGuard,
 [switch]$AttackSurfaceReduction,
-[switch]$ControlledFolderAccess)
+[switch]$ControlledFolderAccess,
+[switch]$AppLocker,
+[switch]$ApplicationControl
+)
 
 #Global Variables
-$ScriptVersion = "0.8"
+$ScriptVersion = "0.9"
 $clientPath = "C:\Windows\Temp"
 $PC = $env:computername 
 $script:logfile = "$clientPath\Client-SecurityPosture.log"
@@ -124,14 +131,14 @@ Function SecPos {
     Write-Output "        Help: 'Securityposture -Help'"
     Write-Output "----------------------------------------------"
     Write-Output "                 @0fflineDocs"
-    Write-Output "----------------------------------------------"
+	Write-Output "----------------------------------------------"
 }
     
 Function Help {
 Write-Host "[HELP]" -ForegroundColor Green
 Write-Host "The script will write entries to a log file residing at the client at this location: (C:\Windows\Temp\Client-SecurityPosture.log)" `n -ForegroundColor White
 Write-Host "You can query this script using indvidual switches and choose which ones you want to use:" -ForegroundColor Yellow 
-Write-Host "SecurityPosture -OS -TPMStatus -Bitlocker -UEFISECBOOT -Defender -DefenderforEndpoint -MAPS -ApplicationGuard -Sandbox -CredentialGuardPreReq -CredentialGuard -DeviceGuard -AttackSurfaceReduction -ControlledFolderAccess" `n -ForegroundColor White
+Write-Host "SecurityPosture -OS -TPMStatus -Bitlocker -UEFISECBOOT -Defender -DefenderforEndpoint -MAPS -BAFS -ApplicationGuard -Sandbox -CredentialGuardPreReq -CredentialGuard -DeviceGuard -AttackSurfaceReduction -ControlledFolderAccess" `n -ForegroundColor White
 
 Write-Host "You can also query every switch in this script using a global switch which includes all available options." -ForegroundColor Yellow
 Write-Host "SecurityPosture -All" `n -ForegroundColor White
@@ -373,7 +380,7 @@ Function Get-Defender(){
     }
     else 
     {
-        Write-LogEntry -Type Warning -Message "Defender Service is not running..."
+        Write-LogEntry -Type Warning -Message "Defender Service is not running."
     }
     if ($Defenderstatus.AntivirusEnabled -eq "True") 
     {                
@@ -425,15 +432,15 @@ Function Get-Defender(){
             }    
         if ($Defenderstatus.PUAProtection -eq "2") 
             {
-                Write-LogEntry -Type Warning -Message "Potentionally Unwanted Application-protection is in audit-mode."
+                Write-LogEntry -Type Warning -Message "Potentionally Unwanted Application Protection is in Audit mode."
             }
         elseif ($Defenderstatus.PUAProtection -eq "1") 
             {
-                Write-LogEntry -Type Success -Message "Potentionally Unwanted Application-protection is enabled."
+                Write-LogEntry -Type Success -Message "Potentionally Unwanted Application Protection is enabled."
             }
         Else 
             {
-                Write-LogEntry -Type Warning -Message "Potentionally Unwanted Application-protection is disabled."
+                Write-LogEntry -Type Warning -Message "Potentionally Unwanted Application Protection is disabled."
             }
         }
         catch [System.Exception] 
@@ -518,6 +525,51 @@ catch [System.Exception]
         
 }
 
+Function Get-BAFS(){
+    <#
+    .DESCRIPTION
+    Checks if 'Block at first Sight' is configured for Windows Defender
+    Source: https://docs.microsoft.com/en-us/microsoft-365/security/defender-endpoint/configure-block-at-first-sight-microsoft-defender-antivirus?view=o365-worldwide
+
+    .EXAMPLE
+    Get-BAFS
+    #>
+    
+    #Variable
+    $Current = Get-Location
+    $p = Get-MpPreference
+    $c = Get-MpComputerStatus
+    $p = @($p)
+    $Defenderstatus = ($p += $c)
+    Set-Location $Current
+
+  try {
+    Write-LogEntry -Message "[Block at first sight for Windows Defender]"  
+    $p1 = ($Defenderstatus.DisableBlockAtFirstSeen -eq "0") 
+    $p2 = ($Defenderstatus.CloudBlockLevel -eq "High") 
+    $p3 = ($Defenderstatus.CloudExtendedTimeout  -eq "50") 
+    $p4 = ($Defenderstatus.SubmitSamplesConsent  -eq "Always") 
+    
+    if ($p1 + $p2 + $p3 + $p4 -eq $True)
+    {
+        Write-LogEntry -Type Success -Message "Block at first sight is enabled and configured according to best practise."
+    }
+else 
+    {
+        Write-LogEntry -Type Warning -Message "Block at first sight is not configured for optimal security."
+    }    
+}
+catch [System.Exception] 
+            {
+                Write-LogEntry -Type Error -Message "Failed to check status of $BAFS"
+            }
+            
+        catch {
+            Write-Error $_.Exception 
+            break
+        }
+}
+
 Function Get-ApplicationGuard(){
     <#
     .DESCRIPTION
@@ -539,7 +591,7 @@ Function Get-ApplicationGuard(){
         }
         else 
                 {
-                    Write-LogEntry -Type Warning -Message "Windows Defender Application Guard is not enabled..."
+                    Write-LogEntry -Type Warning -Message "Windows Defender Application Guard is not enabled."
                 }
         }
                 catch [System.Exception] 
@@ -608,7 +660,7 @@ Function Get-CredentialGuardPreReq(){
                 }
                 else 
                 {
-                    Write-LogEntry -Type Warning -Message "Hyper-V All is not enabled/installed."
+                    Write-LogEntry -Type Warning -Message "Feature: Microsoft-Hyper-V-All is not installed/enabled."
                 }
             }
                 catch [System.Exception] 
@@ -745,36 +797,55 @@ Checks status of AttackSurfaceReduction
 Get-AttackSurfaceReduction
 #>
             
-#Variable
+#Variables
 $Current = Get-Location
-$p = Get-MpPreference -ErrorAction SilentlyContinue
-$c = Get-MpComputerStatus -ErrorAction SilentlyContinue
-$p = @($p)
-$ASRstatus = ($p += $c)
+$RulesIds = Get-MpPreference | Select-Object -ExpandProperty AttackSurfaceReductionRules_Ids
+$RulesActions = Get-MpPreference | Select-Object -ExpandProperty AttackSurfaceReductionRules_Actions
+$counter = 0
+$RulesIdsArray = @()
+$RulesIdsArray += $RulesIds
 Set-Location $Current
 
-    try {
+    try { 
         Write-LogEntry -Message "[Attack Surface Reduction]"
-        if ($Defenderstatus.EnableNetworkProtection -eq "1") 
-    {
-    Write-LogEntry -Type Success -Message "Network Protection is Enabled"
+        Write-Host "Attack Surface Reduction Rules are configured as follows:"
+        ForEach ($j in $RulesIds)
+        {
+            ## Convert GUID into Rule Name
+        If ($RulesIdsArray[$counter] -eq "D4F940AB-401B-4EFC-AADC-AD5F3C50688A"){$RuleName = "Block all Office applications from creating child processes"}
+        ElseIf ($RulesIdsArray[$counter] -eq "5BEB7EFE-FD9A-4556-801D-275E5FFC04CC"){$RuleName = "Block execution of potentially obfuscated scripts"}
+        ElseIf ($RulesIdsArray[$counter] -eq "92E97FA1-2EDF-4476-BDD6-9DD0B4DDDC7B"){$RuleName = "Block Win32 API calls from Office macro"}
+        ElseIf ($RulesIdsArray[$counter] -eq "3B576869-A4EC-4529-8536-B80A7769E899"){$RuleName = "Block Office applications from creating executable content"}
+        ElseIf ($RulesIdsArray[$counter] -eq "75668C1F-73B5-4CF0-BB93-3ECF5CB7CC84"){$RuleName = "Block Office applications from injecting code into other processes"}
+        ElseIf ($RulesIdsArray[$counter] -eq "D3E037E1-3EB8-44C8-A917-57927947596D"){$RuleName = "Block JavaScript or VBScript from launching downloaded executable content"}
+        ElseIf ($RulesIdsArray[$counter] -eq "BE9BA2D9-53EA-4CDC-84E5-9B1EEEE46550"){$RuleName = "Block executable content from email client and webmail"}
+        ElseIf ($RulesIdsArray[$counter] -eq "01443614-cd74-433a-b99e-2ecdc07bfc25"){$RuleName = "Block executable files from running unless they meet a prevalence, age, or trusted list criteria"}
+        ElseIf ($RulesIdsArray[$counter] -eq "9e6c4e1f-7d60-472f-ba1a-a39ef669e4b2"){$RuleName = "Block credential stealing from the Windows local security authority subsystem (lsass.exe)"}
+        ElseIf ($RulesIdsArray[$counter] -eq "d1e49aac-8f56-4280-b9ba-993a6d77406c"){$RuleName = "Block process creations originating from PSExec and WMI commands"}
+        ElseIf ($RulesIdsArray[$counter] -eq "b2b3f03d-6a65-4f7b-a9c7-1c7ef74a9ba4"){$RuleName = "Block untrusted and unsigned processes that run from USB"}
+        ElseIf ($RulesIdsArray[$counter] -eq "26190899-1602-49e8-8b27-eb1d0a1ce869"){$RuleName = "Block Office communication applications from creating child processes"}
+        ElseIf ($RulesIdsArray[$counter] -eq "7674ba52-37eb-4a4f-a9a1-f0f9a1619a2c"){$RuleName = "Block Adobe Reader from creating child processes"}
+        ElseIf ($RulesIdsArray[$counter] -eq "e6db77e5-3df2-4cf1-b95a-636979351e5b"){$RuleName = "Block persistence through WMI event subscription"}
+        ElseIf ($RulesIdsArray[$counter] -eq "c1db55ab-c21a-4637-bb3f-a12568109d35"){$RuleName = "Use advanced protection against ransomware"}
+       
+        ## Check the Action type
+        If ($RulesActions[$counter] -eq 0){$RuleAction = "Disabled"}
+        ElseIf ($RulesActions[$counter] -eq 1){$RuleAction = "Block"}  
+        ElseIf ($RulesActions[$counter] -eq 2){$RuleAction = "Audit"}
+        
+        ## Add Color to message based on Action type
+        If ($RulesActions[$counter] -eq 1) {$FGColor = "Green"}
+        ElseIf ($RulesActions[$counter] -eq 2) {$FGColor = "Yellow"}
+        ElseIf ($RulesActions[$counter] -eq 0) {$FGColor = "Red"}
+    
+        ## Output Rule Id, Name and Action
+        #Write-Host "Rule:" $RuleName
+        Write-LogEntry -Message "Rule: $RuleName Action: $RuleAction"
+        Write-Host "Action:" "[$RuleAction]" -ForegroundColor $FGColor
+        $counter++
+        
+      
     }
-else 
-    {
-        Write-LogEntry -Type Warning -Message "Network Protection is Disabled"
-    }    
-        if ($ASRstatus.AttackSurfaceReductionRules_Actions -eq "2") 
-        {
-            Write-LogEntry -Type Warning -Message "Attack Surface Reduction is configured and in audit mode."
-        }
-        elseif ($ASRstatus.AttackSurfaceReductionRules_Actions -eq "1")
-        {
-            Write-LogEntry -Type Success -Message "Attack Surface Reduction is configured and enforced."
-        }
-        else 
-        {
-            Write-LogEntry -Type Warning -Message "Attack Surface Reduction is not configured."
-        }
 }
 catch [System.Exception] 
     {
@@ -803,7 +874,7 @@ $p = @($p)
 $CFAstatus = ($p += $c)
 Set-Location $Current
     try {
-        Write-LogEntry -Message "Checking status and configuration for Attack Surface Reduction..."
+        Write-LogEntry -Message "Checking status and configuration for Controlled Folder Access..."
         if ($CFAstatus.EnableControlledFolderAccess -eq "2") 
     {
     Write-LogEntry -Type Warning -Message "Controlled Folder Access is enabled and in audit mode."
@@ -826,6 +897,75 @@ Write-Error $_.Exception
 break
 }
 }
+
+Function Get-Applocker(){
+<#
+.DESCRIPTION
+Counts and presents amount of AppLocker events in client, based on Get-AppLockerFileInformation
+            
+.EXAMPLE
+Get-Applocker
+#>
+
+#Variable
+$ApplockerAudited = (Get-AppLockerFileInformation -EventLog -EventType Audited).count
+$ApplockerAllowed = (Get-AppLockerFileInformation -eventlog -EventType Allow).count
+$ApplockerDenied = (Get-AppLockerFileInformation -eventlog -EventType Denied).count
+    
+            try {
+                Write-LogEntry -Message "[AppLocker]"
+                Write-LogEntry -Message "Audited AppLocker Events: $AppLockerAudited"
+                Write-LogEntry -Message "Allowed AppLocker Events: $AppLockerAllowed"
+                Write-LogEntry -Message "Denied AppLocker Events: $AppLockerDenied"
+        }
+        catch [System.Exception] 
+                    {
+                        Write-LogEntry -Type Error -Message "Failed to check status of AppLocker"
+                    }
+                    
+                catch {
+                    Write-Error $_.Exception 
+                    break
+                }
+}
+
+Function Get-ApplicationControl(){
+<#
+.DESCRIPTION
+Checks status of Application Control based on events in Microsoft-Windows-CodeIntegrity/Operational
+
+.EXAMPLE
+Get-ApplicationControl
+#>
+
+#Variable
+$ApplicationControlStatus = (Get-Winevent  Microsoft-Windows-CodeIntegrity/Operational)
+        
+                try {
+                    Write-LogEntry -Message "[Application Control]"
+                    if ($ApplicationControlStatus.id -eq "3076") 
+                    {
+                    Write-LogEntry -Type Warning -Message "Application Control is enabled and in audit mode."
+                    }
+                    elseif ($ApplicationControlStatus.id -eq "3077") 
+                    {
+                        Write-LogEntry -Type Success -Message "Application Control is configured and enforced."
+                    }
+                        else 
+                        {
+                            Write-LogEntry -Type Warning -Message "Application Control is not configured."
+                        }
+            }
+            catch [System.Exception] 
+                        {
+                            Write-LogEntry -Type Error -Message "Failed to check status of Application Control"
+                        }
+                        
+                    catch {
+                        Write-Error $_.Exception 
+                        break
+                    }
+    }
 
 <################ SWITCHES #################>
 if($SecPos){
@@ -864,6 +1004,10 @@ if ($MAPS) {
 Get-MAPS
 }
 
+if ($BAFS) {
+    Get-BAFS
+}
+
 if($ApplicationGuard){
 Get-ApplicationGuard
 }
@@ -892,6 +1036,15 @@ if ($ControlledFolderAccess) {
 Get-ControlledFolderAccess
 }
 
+if ($AppLocker) {
+    Get-AppLocker
+}
+
+if ($ApplicationControl) {
+    Get-ApplicationControl
+}
+
+
 if ($All) {
 SecPos
 Get-OperatingSystem
@@ -901,6 +1054,7 @@ Get-UefiSecureBoot
 Get-Defender
 Get-DefenderforEndpoint
 Get-MAPS
+Get-BAFS
 Get-ApplicationGuard
 Get-Sandbox
 Get-CredentialGuardPreReq
@@ -908,4 +1062,6 @@ Get-CredentialGuard
 Get-DeviceGuard
 Get-AttackSurfaceReduction
 Get-ControlledFolderAccess
+Get-AppLocker
+Get-ApplicationControl
 }
