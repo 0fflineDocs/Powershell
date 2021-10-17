@@ -19,8 +19,10 @@ Currently the script detects the status of:
 - Windows Sandbox
 - Credential Guard
 - Device Guard
-- Attack Surface Reduction
-- Controlled Folder Access  
+- Attack Surface Reduction Rules
+- Controlled Folder Access
+- AppLocker
+- Application Control
 
 The script will write entries to a log file residing at the client (*C:\Windows\Temp\Client-SecurityPosture.log*)   
 which preferably is read using [CMTrace](https://www.microsoft.com/en-us/download/confirmation.aspx?id=50012) or [OneTrace](https://docs.microsoft.com/en-us/mem/configmgr/core/support/support-center-onetrace).
