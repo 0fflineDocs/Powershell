@@ -31,4 +31,4 @@ The script itself can be found and installed via [Powershell Gallery](https://ww
 
 [Upcomfing Features & Improvements](https://github.com/Sculpin90/Powershell/projects/1)  
 **Twitter:** [0fflineDocs](https://twitter.com/0fflineDocs)  
-**How-to:** [Blog post](https://devicemanagement.home.blog/2020/07/30/security-posture/)    
+**How-to:** [Blog post](https://www.simonhakansson.com/cloud-endpoint-blog/security-posture)    
