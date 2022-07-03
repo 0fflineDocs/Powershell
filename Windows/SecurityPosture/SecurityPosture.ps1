@@ -26,6 +26,7 @@
 .EXTERNALSCRIPTDEPENDENCIES
 
 .RELEASENOTES
+0.9.1 - Removed CG Pre-Req and included CG check in Device Guard instead.
 0.9 - Added Attack Surface Reduction Rules, AppLocker, Application Control.
 
 .PRIVATEDATA
@@ -89,8 +90,6 @@ param(
 [switch]$BAFS,
 [switch]$ApplicationGuard,
 [switch]$Sandbox,
-[switch]$CredentialGuardPreReq,
-[switch]$CredentialGuard,
 [switch]$DeviceGuard,
 [switch]$AttackSurfaceReduction,
 [switch]$ControlledFolderAccess,
@@ -637,81 +636,6 @@ Function Get-Sandbox(){
                 }
 }
 
-Function Get-CredentialGuardPreReq(){
-        <#
-        .DESCRIPTION
-        Checks status of pre-requesits for Credential Guard
-                
-        .EXAMPLE
-        Get-CredentialGuardPreReq
-        #>
-            #Variable
-            $CGPrereq = Get-WindowsOptionalFeature -Online -Featurename Microsoft-Hyper-V-All -ErrorAction SilentlyContinue
-            
-            try {
-                Write-LogEntry -Message "[Credential Guard Pre-requisite]"
-                $CGPrereq = Get-WindowsOptionalFeature -Online -Featurename Microsoft-Hyper-V-All -ErrorAction SilentlyContinue
-                if ($CGPrereq.state = "Enabled") 
-                {
-                Write-LogEntry -Type Success -Message "Credential Guard prerequisite Hyper V is installed and enabled."
-                }
-                else 
-                {
-                    Write-LogEntry -Type Warning -Message "Feature: Microsoft-Hyper-V-All is not installed/enabled."
-                }
-            }
-                catch [System.Exception] 
-                {
-                    Write-LogEntry -Type Error -Message "Failed to check status of $CredentialGuardPreReq"
-                }
-        
-                        
-                    catch {
-                        Write-Error $_.Exception 
-                        break
-                    }
-}
-    
-Function Get-CredentialGuard(){
-        <#
-        .DESCRIPTION
-        Checks status of Credential Guard
-                
-        .EXAMPLE
-        Get-CredentialGuard
-        #>
-        
-        #Variable
-        $CredentialguardStatus = Get-CimInstance -ClassName Win32_DeviceGuard -Namespace root\Microsoft\Windows\DeviceGuard -ErrorAction SilentlyContinue
-            try {
-                Write-LogEntry -Message "[Credential Guard]" 
-                if ($CredentialGuardStatus.SecurityServicesRunning -like 1)
-            {
-                Write-Logentry -Type Success -Message "Credential Guard Services are running."
-            }
-            else 
-                    {
-                        Write-LogEntry -Type Warning -Message "Credential Guard Services are not running."
-                    }
-                    if ($CredentialGuardStatus.SecurityServicesConfigured -like 1)
-                    {
-                        Write-Logentry -Type Success -Message "Credential Guard is configured."
-                    }
-                    else 
-                            {
-                                Write-LogEntry -Type Warning -Message "Credential Guard is not configured."
-                            }
-        }
-        catch [System.Exception] 
-                    {
-                        Write-LogEntry -Type Error -Message "Failed to check status of $CredentialGuard"
-                    }  
-                    catch {
-                        Write-Error $_.Exception 
-                        break
-                    }
-}
-
 Function Get-DeviceGuard(){
 <#
 .DESCRIPTION
@@ -730,35 +654,16 @@ $DevGuardInfo = Get-Computerinfo | Select-Object -Property DeviceGuard*
         {
             Write-Logentry -Type Success -Message "Device Guard Code Integrity Policy is activated and enforced."
         }
-        else 
+        if ($DevGuardInfo.DeviceGuardSecurityServicesConfigured -contains "1")
                 {
-                    Write-LogEntry -Type Warning -Message "Device Guard Code Integrity Policy is not activated."
+                    Write-LogEntry -Type Success -Message "Credential Guard is configured."
                 }
-                if ($DevGuardStatus.SecurityServicesRunning -like 1)
-                {
-                    Write-Logentry -Type Success -Message "Device Guard services are running."
-                }
-                else 
+                else
                         {
-                            Write-LogEntry -Type Warning -Message "Device Guard services are not running."
+                            Write-LogEntry -Type Warning -Message "Credential Guard is not configured."
                         }
-                        if ($DevGuardInfo.DeviceGuardCodeIntegrityPolicyEnforcementStatus -eq "AuditMode")
-                        {
-                            Write-LogEntry -Type Warning -Message "Device Guard Code Integrity is currently in Audit Mode."
-                        }
-                        else
-                                {
-                                    
-                                }
-                        if ($DevGuardInfo.DeviceGuardSmartStatus -like 1)
-                        {
-                            Write-LogEntry -Type Success -Message "Device Guard Smart Status is running."
-                        }
-                        else 
-                                {
-                                    Write-LogEntry -Type Warning -Message "Device Guard Smart Status is not running."
-                                }        
-                if ($DevGuardInfo.DeviceGuardSecurityServicesRunning -like "CredentialGuard")
+                        
+                if ($DevGuardStatus.SecurityServicesRunning -contains "1")
                 {
                     Write-LogEntry -Type Success -Message "Credential Guard is running."
                 }
@@ -766,13 +671,53 @@ $DevGuardInfo = Get-Computerinfo | Select-Object -Property DeviceGuard*
                         {
                             Write-LogEntry -Type Warning -Message "Credential Guard is not running."
                         }
-                if ($DevGuardInfo.DeviceGuardSecurityServicesConfigured -like "CredentialGuard")
+                if ($DevGuardStatus.SecurityServicesConfigured -contains "2")
                 {
-                    Write-LogEntry -Type Success -Message "Credential Guard is configured."
+                    Write-LogEntry -Type Success -Message "Hypervisor Code Integrity is configured."
                 }
                 else
                         {
-                            Write-LogEntry -Type Warning -Message "Credential Guard is not configured."
+                            Write-LogEntry -Type Warning -Message "Hypervisor Code Integrity is not configured."
+                        }
+                if ($DevGuardStatus.SecurityServicesRunning -contains "2")
+                {
+                    Write-LogEntry -Type Success -Message "Hypervisor Code Integrity is running."
+                }
+                else
+                        {
+                            Write-LogEntry -Type Warning -Message "Hypervisor Code Integrity is not running."
+                        }
+                if ($DevGuardStatus.SecurityServicesConfigured -contains "3")
+                {
+                    Write-LogEntry -Type Success -Message "System Guard Secure Launch is configured."
+                }
+                else
+                        {
+                            Write-LogEntry -Type Warning -Message "System Guard Secure Launch is not configured."
+                        }
+                if ($DevGuardStatus.SecurityServicesRunning -contains "3")
+                {
+                    Write-LogEntry -Type Success -Message "System Guard Secure Launch is running."
+                }
+                else
+                        {
+                            Write-LogEntry -Type Warning -Message "System Guard Secure Launch is not running."
+                        }
+                if ($DevGuardStatus.SecurityServicesConfigured -contains "4")
+                {
+                    Write-LogEntry -Type Success -Message "SMM Firmware Measurementis configured."
+                }
+                else
+                        {
+                            Write-LogEntry -Type Warning -Message "SMM Firmware Measurement is not configured."
+                        }
+                if ($DevGuardStatus.SecurityServicesRunning -contains "4")
+                {
+                    Write-LogEntry -Type Success -Message "SMM Firmware Measurement is running."
+                }
+                else
+                        {
+                            Write-LogEntry -Type Warning -Message "SMM Firmware Measurement is not running."
                         }
                  }
     catch [System.Exception] 
@@ -1055,8 +1000,6 @@ Get-MAPS
 Get-BAFS
 Get-ApplicationGuard
 Get-Sandbox
-Get-CredentialGuardPreReq
-Get-CredentialGuard
 Get-DeviceGuard
 Get-AttackSurfaceReduction
 Get-ControlledFolderAccess
