@@ -218,72 +218,51 @@ try {
         break
     }
 
-# System Guard Secure Launch   
-Write-Host "[System Guard Secure Launch]" -ForegroundColor Yellow
-Write-Host "(Requires Hypervisor Code Integrity, Credential Guard, and Virtualization Based Security)" 
-
-$DevGuardStatus = Get-CimInstance -classname Win32_DeviceGuard -namespace root\Microsoft\Windows\DeviceGuard -ErrorAction SilentlyContinue
-$DevGuardInfo = Get-Computerinfo | Select-Object -Property DeviceGuard*  
-        try {
-        Write-Host "[Hyper Visor Code Integrity]" -ForegroundColor Yellow
-            if ($DevGuardStatus.CodeIntegrityPolicyEnforcementStatus -like 1)
-        {
-            Write-Host "Device Guard Code Integrity Policy is activated and enforced." -ForegroundColor Green
-        }
-        else 
-                {
-                    Write-Host "Device Guard Code Integrity Policy is not activated." -ForegroundColor Red
-                    Write-Host "https://docs.microsoft.com/en-us/windows/security/threat-protection/device-guard/enable-virtualization-based-protection-of-code-integrity"
-                }
-                if ($DevGuardStatus.SecurityServicesRunning -like 1)
-                {
-                    Write-Host "Device Guard services are running." -ForegroundColor Green
-                }
-                else 
-                        {
-                            Write-Host "Device Guard services are not running." -ForegroundColor Red
-                        }
-                        if ($DevGuardInfo.DeviceGuardCodeIntegrityPolicyEnforcementStatus -eq "AuditMode")
-                        {
-                            Write-Host "Device Guard Code Integrity is currently in Audit Mode." -ForegroundColor Green
-                        }
-                        else
-                                {
-                                    
-                                }
-                        if ($DevGuardInfo.DeviceGuardSmartStatus -like 1)
-                        {
-                            Write-Host "Device Guard Smart Status is running." -ForegroundColor Green
-                        }
-                        else 
-                                {
-                                    Write-Host "Device Guard Smart Status is not running." -ForegroundColor Red
-                                }  
-                Write-Host "[Credential Guard]" -ForegroundColor Yellow               
-                if ($DevGuardInfo.DeviceGuardSecurityServicesRunning -like "CredentialGuard")
-                {
-                    Write-Host "Credential Guard is running." -ForegroundColor Green
-                }
-                else
-                        {
-                            Write-Host "Credential Guard is not running." -ForegroundColor Red
-                            Write-Host "https://docs.microsoft.com/en-us/windows/security/identity-protection/credential-guard/credential-guard-manage#enable-windows-defender-credential-guard"
-                        }
-                if ($DevGuardInfo.DeviceGuardSecurityServicesConfigured -like "CredentialGuard")
-                {
-                    Write-Host "Credential Guard is configured." -ForegroundColor Green
-                }
-                else
-                        {
-                            Write-Host "Credential Guard is not configured." -ForegroundColor Red
-                        }
-                 }
+# Device Guard - Currently configured and running services 
+Write-Host "[Device Guard]" -ForegroundColor Yellow
+Write-Host "Credential Guard, Hypervisor Code Integrity, System Guard Secure Launch, SMM Firmware Measurement" -ForegroundColor Yellow
+Write-Host "Currently configured and running services:" -ForegroundColor White
+$DGStatus = (Get-CimInstance -ClassName Win32_DeviceGuard -Namespace root\Microsoft\Windows\DeviceGuard)
+try {
+    if ($DGStatus.SecurityServicesConfigured -contains 1)
+    {
+        Write-Host "Credential Guard is configured." -ForegroundColor Green
+    }
+    elseif ($DGStatus.SecurityServicesConfigured -contains 2)
+    {
+        Write-Host "Hypervisor Code Integrity is configured." -ForegroundColor Green
+    }
+    elseif ($DGStatus.SecurityServicesConfigured -contains 3)
+    {
+        Write-Host "System Guard Secure Launch is configured." -ForegroundColor Green
+    }
+    elseif ($DGStatus.SecurityServicesConfigured -contains 4)
+    {
+        Write-Host "SMM Firmware Measurement is configured." -ForegroundColor Green
+    }
+    if ($DGStatus.SecurityServicesRunning -contains 1)
+    {
+        Write-Host "Credential Guard is running." -ForegroundColor Green
+    }
+    elseif ($DGStatus.SecurityServicesRunning -contains 2)
+    {
+        Write-Host "Hypervisor Code Integrity is running." -ForegroundColor Green
+    }
+    elseif ($DGStatus.SecurityServicesRunning -contains 3)
+    {
+        Write-Host "System Guard Secure Launch is running." -ForegroundColor Green
+    }
+    elseif ($DGStatus.SecurityServicesRunning -contains 4)
+    {
+        Write-Host "SMM Firmware Measurement is running." -ForegroundColor Green
+    }    
+}
     catch [System.Exception] 
                 {
-                    Write-LogEntry -Type Error -Message "Failed to check status of $DeviceGuard"
+                    Write-Host "Failed to check status of $DGStatus"
                 }
             
-                    catch {
-                        Write-Error $_.Exception 
-                        break
-                    }
+catch {
+    Write-Error $_.Exception 
+    break
+}
