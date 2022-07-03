@@ -5,7 +5,7 @@ Compmgmt.msc /computer:COMPUTERNAME
 Gpedit.msc /gpcomputer:"\\COMPUTERNAME"
 Timeout /t 10
 
-#Control Panel
+# Control Panel
 MEMCM: Control smscfgrc 
 MEMCM Software Center: Softwarecenter: 
 Network: Ncpa.cpl 
@@ -17,9 +17,12 @@ Certificates Local Computer: certlm.msc
 DiskManagement: diskmgmt.msc
 Printers: Control printers
 
-#Windows Update	
+# Windows Update	
 ms-settings:windowsupdate
 ms-settings:windowsupdate-action
 
-#Check status AzureAD
+# Reset a PC
+systemreset --factoryreset
+
+# Check status AzureAD
 dsregcmd /status 
