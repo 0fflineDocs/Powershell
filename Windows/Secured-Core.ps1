@@ -261,7 +261,6 @@ try {
                 {
                     Write-Host "Failed to check status of $DGStatus"
                 }
-            
 catch {
     Write-Error $_.Exception 
     break
