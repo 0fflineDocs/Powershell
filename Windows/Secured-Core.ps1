@@ -1,8 +1,13 @@
+<#
+.DESCRIPTION
+Just a simple script that queries the local PC and evaluates values based on the requirements for a Secured Core PC: https://docs.microsoft.com/en-us/windows-hardware/design/device-experiences/oem-highly-secure
+#>
+
 $PC = $ENV:COMPUTERNAME
 Write-Host "[Secured-Core PC - Local Assessment]" -ForegroundColor Yellow
 Write-Host "Secured-Core PC: https://docs.microsoft.com/en-us/windows-hardware/design/device-experiences/oem-highly-secure"
 
-# Pre-Requisite gor Get-CimInstance
+# Pre-Requisite for Get-CimInstance
 Get-Service -Name WinRM | Start-Service
 
 # Operating System Information
