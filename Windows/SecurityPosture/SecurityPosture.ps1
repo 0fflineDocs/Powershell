@@ -1,7 +1,7 @@
 
 <#PSScriptInfo
 
-.VERSION 0.8
+.VERSION 0.9
 
 .GUID db087c94-c946-450f-81a6-568db251c536
 
@@ -11,7 +11,7 @@
 
 .COPYRIGHT
 
-.TAGS Device Security, Device Management
+.TAGS Endpoint Security, Endpoint Management
 
 .LICENSEURI
 
@@ -26,7 +26,7 @@
 .EXTERNALSCRIPTDEPENDENCIES
 
 .RELEASENOTES
-
+0.9 - Added Attack Surface Reduction Rules, AppLocker, Application Control.
 
 .PRIVATEDATA
 
@@ -584,7 +584,6 @@ Function Get-ApplicationGuard(){
 
     try {
         Write-LogEntry -Message "[Application Guard]"
-        Write-LogEntry -Message "Checking if Windows Defender Application Guard is installed and enabled..." 
         if ($ApplicationGuardStatus.State = "Enabled") 
         {
         Write-Logentry -Type Success -Message "Windows Defender Application Guard is installed and enabled."
@@ -618,8 +617,6 @@ Function Get-Sandbox(){
         
         try {
             Write-LogEntry -Message "[Sandbox]"
-            Write-LogEntry -Message "Checking if Windows Sandbox is installed and enabled..." 
-          
             if ($Sandboxstatus.State = "Enabled") 
             {
             Write-Logentry -Type Success -Message "Windows Sandbox is installed and enabled."
@@ -814,6 +811,7 @@ Set-Location $Current
             ## Convert GUID into Rule Name
         If ($RulesIdsArray[$counter] -eq "D4F940AB-401B-4EFC-AADC-AD5F3C50688A"){$RuleName = "Block all Office applications from creating child processes"}
         ElseIf ($RulesIdsArray[$counter] -eq "5BEB7EFE-FD9A-4556-801D-275E5FFC04CC"){$RuleName = "Block execution of potentially obfuscated scripts"}
+        ElseIf ($RulesIdsArray[$counter] -eq "56a863a9-875e-4185-98a7-b882c64b5ce5"){$RuleName = "Block abuse of exploited vulnerable signed drivers"}
         ElseIf ($RulesIdsArray[$counter] -eq "92E97FA1-2EDF-4476-BDD6-9DD0B4DDDC7B"){$RuleName = "Block Win32 API calls from Office macro"}
         ElseIf ($RulesIdsArray[$counter] -eq "3B576869-A4EC-4529-8536-B80A7769E899"){$RuleName = "Block Office applications from creating executable content"}
         ElseIf ($RulesIdsArray[$counter] -eq "75668C1F-73B5-4CF0-BB93-3ECF5CB7CC84"){$RuleName = "Block Office applications from injecting code into other processes"}
@@ -874,7 +872,7 @@ $p = @($p)
 $CFAstatus = ($p += $c)
 Set-Location $Current
     try {
-        Write-LogEntry -Message "Checking status and configuration for Controlled Folder Access..."
+        Write-LogEntry -Message "[Controlled Folder Access]"
         if ($CFAstatus.EnableControlledFolderAccess -eq "2") 
     {
     Write-LogEntry -Type Warning -Message "Controlled Folder Access is enabled and in audit mode."
