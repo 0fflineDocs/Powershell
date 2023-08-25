@@ -4,7 +4,7 @@
 
 #### Install-Script -Name [SecurityPosture](https://www.powershellgallery.com/packages/SecurityPosture)
 
-#### This is a powershell script for detecting status of different security related device features related to Microsoft 365 on Windows 10. 
+#### This is a powershell script for detecting status of different security related device features related to Microsoft 365 on Windows. 
 Currently the script detects the status of:   
 
 - Operating System
